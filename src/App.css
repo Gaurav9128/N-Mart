@@ -1,0 +1,33 @@
+.image-container {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .image-wrapper {
+    position: relative;
+    width: 300px; /* Adjust as necessary */
+  }
+  
+  .original-image {
+    width: 100%; /* Adjust as necessary */
+  }
+  
+  .zoomed-image-container {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 320px; /* Adjust based on the size of the original image */
+    width: 500px; /* Adjust the size of the zoomed container */
+    height: 400px; /* Adjust the size of the zoomed container */
+    overflow: hidden;
+    border: none;
+    border-radius: 10px;
+    background-color: white;
+  }
+  
+  .zoomed-image {
+    position: absolute;
+  }
+  .original-image {
+    width: auto;
+}
