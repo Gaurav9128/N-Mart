@@ -1,8 +1,7 @@
 import React from 'react'
 import FooterComponent from '../components/FooterComponent';
 import Navbar from '../components/Navbar';
-import { Row, Col, Card } from 'react-bootstrap';
-import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
+import {Col, Card } from 'react-bootstrap';
 
 const AboutUs = () => {
   return (
@@ -17,7 +16,7 @@ const AboutUs = () => {
   <img src="..." className="card-img-top" alt="..." />
   <div className="card-body">
     <h5 className="card-title">Card title</h5>
-    <p className="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+    <p className="card-text">Some quick example text to build on the card title and make up the bulk of the  content.</p>
     <a href="#" className="btn btn-primary">Go somewhere</a>
   </div>
 </div></div>
@@ -26,7 +25,7 @@ const AboutUs = () => {
   <img src="..." className="card-img-top" alt="..." />
   <div className="card-body">
     <h5 className="card-title">Card title</h5>
-    <p className="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+    <p className="card-text">Some quick example text to build on the card title and make up the bulk of the content.</p>
     <a href="#" className="btn btn-primary">Go somewhere</a>
   </div>
 </div></div>
@@ -35,7 +34,7 @@ const AboutUs = () => {
   <img src="..." className="card-img-top" alt="..." />
   <div className="card-body">
     <h5 className="card-title">Card title</h5>
-    <p className="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+    <p className="card-text">Some quick example text to build on the card title and make up the bulk of the  content.</p>
     <a href="#" className="btn btn-primary">Go somewhere</a>
   </div>
 </div></div>
