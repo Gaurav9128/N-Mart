@@ -64,7 +64,7 @@ const router = createBrowserRouter([
     element : <TermsConditions />
   },
   {
-    path : "/privacy-policy" ,
+    path : "/About-us" ,
     element : <AboutUs />
   }
 ]);

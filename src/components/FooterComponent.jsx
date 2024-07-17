@@ -39,7 +39,7 @@ const FooterComponent = () => {
               <Footer.Title title="Others" />
               <Footer.LinkGroup col>
               <Footer.Link href="https://wa.me/919829179622">Contact Us</Footer.Link>
-                <Footer.Link href="/privacy-policy">About Us</Footer.Link>
+                <Footer.Link href="/About-us">About Us</Footer.Link>
               </Footer.LinkGroup>
             </div>
           </div>
