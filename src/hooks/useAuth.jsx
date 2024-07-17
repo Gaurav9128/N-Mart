@@ -12,7 +12,6 @@ export default function AuthProvider ({children }){
     const [userVerificationStatus, setUserVerificationStatus] = useRecoilState(verifiedState);
 
 
-
     useEffect(() => {
       const auth = getAuth();
         const unsubscribe = onAuthStateChanged(auth, async(currentUser) => {
@@ -37,6 +36,19 @@ export default function AuthProvider ({children }){
 
       return children;
 }
+
+export const loggingOut = (auth, setUser, navigate) => {
+      signOut(auth).then(() => {
+            localStorage.removeItem("userId");
+            localStorage.removeItem("token");
+            setUser(null);
+            navigate("/");
+
+            
+        }).catch((error) => {
+          console.log("error while signing Out", error);
+        });
+    }
 
 export const UserAuth = () => {
   return useRecoilValue(userState)
