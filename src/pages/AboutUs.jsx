@@ -8,7 +8,7 @@ const AboutUs = () => {
     <><Navbar /><div><br></br>
     <div style={{ margin: '100px' }}></div>
     <div style={{padding: '0 75px'}}>
-      <b>--AboutUs--</b>
+      <b>--Welcome to My About-US section--</b>
       <br></br><br></br>
       <Container className="my-5">
             <Row className="justify-content-center">
