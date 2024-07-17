@@ -7,7 +7,7 @@ const AboutUs = () => {
     <><Navbar /><div><br></br>
     <div style={{ margin: '100px' }}></div>
     <div style={{padding: '0 75px'}}>
-      <b>--Pricing Policy--</b>
+      <b>--AboutUs--</b>
       <br></br><br></br>
       1. Pricing and Currency<br></br><br></br>
       <b>1.1 Currency</b>
