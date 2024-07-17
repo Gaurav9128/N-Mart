@@ -21,6 +21,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy.jsx';
 import TermsConditions from './pages/TermsCondition.jsx';
 
 
+
 const router = createBrowserRouter([
   {
     path: "/",
