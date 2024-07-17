@@ -1,39 +1,48 @@
 import React from 'react'
 import FooterComponent from '../components/FooterComponent';
 import Navbar from '../components/Navbar';
-import { Container, Row, Col, Card } from 'react-bootstrap';
+import { Row, Col, Card } from 'react-bootstrap';
+import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
 
 const AboutUs = () => {
   return (
     <><Navbar /><div><br></br>
     <div style={{ margin: '100px' }}></div>
     <div style={{padding: '0 75px'}}>
-      <b>--Welcome to My About-US section--</b>
-      <br></br><br></br>
-      <Container className="my-5">
-            <Row className="justify-content-center">
-                <Col md={8}>
-                    <Card>
-                        <Card.Header as="h2" className="text-center">
-                            About Us
-                        </Card.Header>
-                        <Card.Body>
-                            <Card.Text>
-                                <p>
-                                    Welcome to our company! We are dedicated to providing the best services in the industry. Our team of experts is committed to delivering top-notch solutions that meet the needs of our clients.
-                                </p>
-                                <p>
-                                    Our mission is to innovate and lead the market with our exceptional services. We value integrity, quality, and customer satisfaction above all else.
-                                </p>
-                                <p>
-                                    Thank you for choosing us. We look forward to working with you and achieving great success together.
-                                </p>
-                            </Card.Text>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
-        </Container>
+      <React.Fragment>
+        <h1>We Have Other Branches Also</h1>
+        <div className="container text-center">
+  <div className="row">
+    <div className="col"><div className="card">
+  <img src="..." className="card-img-top" alt="..." />
+  <div className="card-body">
+    <h5 className="card-title">Card title</h5>
+    <p className="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+    <a href="#" className="btn btn-primary">Go somewhere</a>
+  </div>
+</div></div>
+
+    <div className="col"><div className="card">
+  <img src="..." className="card-img-top" alt="..." />
+  <div className="card-body">
+    <h5 className="card-title">Card title</h5>
+    <p className="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+    <a href="#" className="btn btn-primary">Go somewhere</a>
+  </div>
+</div></div>
+
+    <div className="col"><div className="card" >
+  <img src="..." className="card-img-top" alt="..." />
+  <div className="card-body">
+    <h5 className="card-title">Card title</h5>
+    <p className="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+    <a href="#" className="btn btn-primary">Go somewhere</a>
+  </div>
+</div></div>
+
+  </div>
+</div>
+      </React.Fragment>
       </div>
 
       <FooterComponent />
