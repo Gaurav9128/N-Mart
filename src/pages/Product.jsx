@@ -21,13 +21,16 @@ const Product = (props) => {
   const [total, setTotal] = useState(0);
   const [pricePerPiece, setPricePerPiece] = useState(0);
   const [cartTotal, setCartTotal] = useRecoilState(cartTotalAtom);
+  const [discount1, setDiscount1] = useState(0);
+  const [discount2, setDiscount2] = useState(0);
+
 
   const { id } = useParams();
 
   useEffect(() => {
     getProductDetails();
   }, [])
-  
+
   useEffect(() => {
     if (prices.length > 0) {
       const minQuantity = prices[0][0]; // Get the minimum quantity from the prices array
@@ -36,12 +39,15 @@ const Product = (props) => {
       setTotal(minQuantity * prices[0][2]); // Set the total based on the minimum quantity and price per piece
     }
   }, [prices]);
-  
-  
+
+
   const getProductDetails = async () => {
     const productRef = doc(firestore, 'products', id);
     const prod = await getDoc(productRef);
+    setDiscount1(prod.data().discount1)
+    setDiscount2(prod.data().discount2)
     setProduct(prod.data());
+    setDiscount1(prod.data().discount1)
     setActiveImage(prod.data().image);
     getVariationData();
   }
@@ -61,7 +67,7 @@ const Product = (props) => {
       pricesArray[i][2] = doc.data().price;
       i++;
     })
-    console.log("pricesArray",pricesArray)
+    console.log("pricesArray", pricesArray)
     setPrices(pricesArray);
   }
   const getVariationData = async () => {
@@ -85,8 +91,8 @@ const Product = (props) => {
     const docSnap = await getDocs(itemq);
     console.log(JSON.stringify(docSnap.docs))
     if (docSnap.docs[0]) {
-      setQuantity(docSnap.docs[0].data().quantity);
-      console.log(docSnap.docs[0].data().quantity+"maha")
+      // setQuantity(docSnap.docs[0].data().quantity);
+      // console.log(docSnap.docs[0].data().quantity+"maha")
     }
   }
 
@@ -94,7 +100,7 @@ const Product = (props) => {
     // Example: Update price based on the selected variant
     let i = -1;
     for (let j = 0; j < variations.length; j++) {
-      
+
       if (variations[j].name === v) {
         i = j;
         break;
@@ -175,7 +181,6 @@ const Product = (props) => {
               pricePerPiece: pricePerPiece,
               variantName: selectedVariant.name,
               productBrand: product.brand
-
             })
           }
         }
@@ -229,7 +234,7 @@ const Product = (props) => {
   const handleQuantityChange = (e) => {
     const inputValue = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
     setQuantity(inputValue);
-  
+
     // Find the price for the given quantity range
     let newPricePerPiece = 0;
     let newTotal = 0;
@@ -240,60 +245,60 @@ const Product = (props) => {
         break;
       }
     }
-  
+
     setPricePerPiece(newPricePerPiece); // Update price per piece
     setTotal(newTotal); // Update total
   }
-  
 
- const increaseQuantity = () => {
-  const newQuantity = quantity + 1;
-  setQuantity(newQuantity);
-  handleQuantityChange({ target: { value: newQuantity } }); // Manually call handleQuantityChange
-}
 
-const decreaseQuantity = () => {
-  const newQuantity = quantity - 1;
-  setQuantity(newQuantity);
-  handleQuantityChange({ target: { value: newQuantity } }); // Manually call handleQuantityChange
-}
+  const increaseQuantity = () => {
+    const newQuantity = quantity + 1;
+    setQuantity(newQuantity);
+    handleQuantityChange({ target: { value: newQuantity } }); // Manually call handleQuantityChange
+  }
 
- 
-    const [zoomedImageStyle, setZoomedImageStyle] = useState({
-      display: 'none',
-      left: '0px',
-      top: '0px',
+  const decreaseQuantity = () => {
+    const newQuantity = quantity - 1;
+    setQuantity(newQuantity);
+    handleQuantityChange({ target: { value: newQuantity } }); // Manually call handleQuantityChange
+  }
+
+
+  const [zoomedImageStyle, setZoomedImageStyle] = useState({
+    display: 'none',
+    left: '0px',
+    top: '0px',
+  });
+
+  const handleMouseOver = () => {
+    setZoomedImageStyle((prevState) => ({ ...prevState, display: 'block' }));
+  };
+
+  const handleMouseOut = () => {
+    setZoomedImageStyle((prevState) => ({ ...prevState, display: 'none' }));
+  };
+
+  const handleMouseMove = (e) => {
+    const originalImage = e.target;
+    const rect = originalImage.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const zoomFactor = 2; // Adjust the zoom factor as needed
+    const zoomedWidth = rect.width * zoomFactor;
+    const zoomedHeight = rect.height * zoomFactor;
+
+    const newLeft = -x * zoomFactor + rect.width / 2;
+    const newTop = -y * zoomFactor + rect.height / 2;
+
+    setZoomedImageStyle({
+      display: 'block',
+      left: `${newLeft}px`,
+      top: `${newTop}px`,
+      width: `${zoomedWidth}px`,
+      height: `${zoomedHeight}px`,
     });
-  
-    const handleMouseOver = () => {
-      setZoomedImageStyle((prevState) => ({ ...prevState, display: 'block' }));
-    };
-  
-    const handleMouseOut = () => {
-      setZoomedImageStyle((prevState) => ({ ...prevState, display: 'none' }));
-    };
-  
-    const handleMouseMove = (e) => {
-      const originalImage = e.target;
-      const rect = originalImage.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-  
-      const zoomFactor = 2; // Adjust the zoom factor as needed
-      const zoomedWidth = rect.width * zoomFactor;
-      const zoomedHeight = rect.height * zoomFactor;
-  
-      const newLeft = -x * zoomFactor + rect.width / 2;
-      const newTop = -y * zoomFactor + rect.height / 2;
-  
-      setZoomedImageStyle({
-        display: 'block',
-        left: `${newLeft}px`,
-        top: `${newTop}px`,
-        width: `${zoomedWidth}px`,
-        height: `${zoomedHeight}px`,
-      });
-    };
+  };
 
   function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
@@ -337,7 +342,7 @@ const decreaseQuantity = () => {
                           />
                           <div
                             className="zoomed-image-container"
-                            style={{ display: zoomedImageStyle.display}}
+                            style={{ display: zoomedImageStyle.display }}
                           >
                             <img
                               src={activeImage}
@@ -369,7 +374,7 @@ const decreaseQuantity = () => {
                       </div>
                     ))}
                   </div>
-                </div>6
+                </div>
               </div>
               {selectedVariant &&
                 <div className="md:flex-1 px-4">
@@ -392,7 +397,26 @@ const decreaseQuantity = () => {
                     </div>
                   </RadioGroup>
 
-
+                  {discount1 && discount2 && (
+                    <>
+                      <div>
+                        <lable>Disount One</lable>
+                        <input disabled value={discount1 + "%"} style={{ border: 'none' }} />
+                      </div>
+                      <div>
+                        <lable>Disount Second</lable>
+                        <input disabled value={discount2 + "%"} style={{ border: 'none' }} />
+                      </div>
+                    </>
+                  )}
+                  {discount1 && discount2 == '' && (<div>
+                    <lable>Disount</lable>
+                    <input disabled value={discount1 + "%"} style={{ border: 'none' }} />
+                  </div>)}
+                  {discount1 == '' && discount2 && (<div>
+                    <lable>Disount</lable>
+                    <input disabled value={discount1 + "%"} style={{ border: 'none' }} />
+                  </div>)}
                   <div className="flex flex-col pt-4 pb-8 space-y-12 border-b">
                     {/* <div className='flex gap-12'>
                   <p className='flex flex-col text-2xl h-10'><span className='text-gray-500'>1-10</span> <span>₹{selectedVariant.price}</span></p>
@@ -430,4 +454,3 @@ const decreaseQuantity = () => {
 }
 
 export default Product
-

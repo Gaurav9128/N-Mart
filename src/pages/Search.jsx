@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { useSearchParams } from 'react-router-dom';
 import { firestore } from '../firebase/FirebaseConfig';
 import Item from '../components/Item';
@@ -14,39 +14,32 @@ const Search = () => {
   const handleSearch = async () => {
     try {
       const productsRef = collection(firestore, 'products');
-      
-      const searchTerms = searchItem.toLowerCase().split(' ').filter(term => term.trim() !== '');
-      console.log('Search Terms:', searchTerms);
+      const searchTerm = searchItem.toLowerCase().trim();
+      console.log('Search Term:', searchTerm);
 
-      if (searchTerms.length === 0) {
-        console.log('No valid search terms provided');
+      if (!searchTerm) {
+        console.log('No valid search term provided');
         setProducts([]);
         return;
       }
-  
-      let finalResults = [];
-  
-      for (const term of searchTerms) {
-        const q = query(productsRef, where('tags', 'array-contains', term));
-        console.log("Executing Query:", q);
-  
-        const querySnapshot = await getDocs(q);
-        if (querySnapshot.empty) {
-          console.log(`No results found for term: ${term}`);
-        } else {
-          console.log(`Results found for term: ${term}`);
-        }
-        const results = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        finalResults = finalResults.concat(results);
-      }
-  
-      console.log("Final Results before deduplication:", finalResults);
-  
-      const uniqueResults = [...new Set(finalResults.map(result => result.id))]
-        .map(id => finalResults.find(result => result.id === id));
-  
-      console.log("Unique Results after deduplication:", uniqueResults);
-      setProducts(uniqueResults);
+
+      const querySnapshot = await getDocs(productsRef);
+      const allProducts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      const filteredProducts = allProducts.filter(product => {
+        const lowerCaseTags = product.tags.map(tag => tag.toLowerCase());
+        const lowerCaseTitle = product.title.toLowerCase();
+        const lowerCaseDescription = product.description.toLowerCase();
+
+        return (
+          lowerCaseTags.includes(searchTerm) ||
+          lowerCaseTitle.includes(searchTerm) ||
+          lowerCaseDescription.includes(searchTerm)
+        );
+      });
+
+      console.log("Filtered Products:", filteredProducts);
+      setProducts(filteredProducts);
     } catch (error) {
       console.error('Error searching for products:', error);
     }

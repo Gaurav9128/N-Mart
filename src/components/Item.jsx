@@ -9,12 +9,15 @@ import { useRecoilState } from 'recoil';
 import { cartTotalAtom } from '../store/atoms/totalCartQuantity';
 
 const Item = (props) => {
+    console.log("props",props)
     const [prices, setPrices] = useState([[]]);
     const [variations, setVariations] = useState([]);
     const [selectedVariant, setSelectedVariant] = useState();
-    const [quantity, setQuantity] = useState(0);
+    const [quantity, setQuantity] = useState(null);
     const navigate = useNavigate();
     const [cartTotal, setCartTotal] = useRecoilState(cartTotalAtom);
+    const [mrp, setMrp] = useState(null);
+
 
     const pricePerPiece = useMemo(() => {
         for (let i = 0; i < prices.length; i++) {
@@ -51,9 +54,6 @@ const Item = (props) => {
     useEffect(() => {
         getVariationData();
     }, [props.id]);
-    useEffect(() => {
-        console.log("Prices updated:", prices);
-    }, [prices]);
 
     const getPricesData = async (variationId) => {
         const docRef = collection(firestore, "products", props.id, "variations", variationId, "prices");
@@ -78,19 +78,30 @@ const Item = (props) => {
             if (pricesArray[i][1] > maximumQuantityOfProduct) maximumQuantityOfProduct = pricesArray[i][1];
         }
         setQuantity(minimumQuantityOfProduct);
+        console.log("minimumQuantityOfProduct "+minimumQuantityOfProduct)
     }
     
     const getVariationData = async () => {
         const docRef = collection(firestore, "products", props.id, "variations");
         const docSnap = await getDocs(docRef);
         const newData = docSnap.docs.map(doc => ({ variationId: doc.id, ...doc.data() }));
-
+    
         setVariations(newData);
         setSelectedVariant(newData[0]);
-        // console.log(newData[0].variationId)
+        
+        // Fetch MRP data
+        const productDocRef = doc(firestore, "products", props.id);
+        const productDocSnap = await getDoc(productDocRef);
+        if (productDocSnap.exists()) {
+            setMrp(productDocSnap.data().mrp);
+        } else {
+            console.error("No such document!");
+        }
+    
         getQuantity(newData[0].variationId);
-        getPricesData(newData[0].variationId)
+        getPricesData(newData[0].variationId);
     }
+    
 
   const getQuantity = async (variationid) => {
     console.log("variationid"+variationid)
@@ -102,37 +113,29 @@ const Item = (props) => {
     const itemq = query(itemsCollection, where("productId", "==", props.id), where("variantId", "==", variationid))
     const docSnap = await getDocs(itemq);
     if (docSnap.docs[0]) {
-        setQuantity(docSnap.docs[0].data().quantity); // <-- Here you're updating the quantity state
+        // setQuantity(docSnap.docs[0].data().quantity);
+        // console.log("docSnap.docs[0].data().quantity "+docSnap.docs[0].data().quantity) // <-- Here you're updating the quantity state
+    
     }
 }
 
-
-    const increaseQuantity = () => {
-        const newQuantity = Number(quantity) + 1;
-        if (newQuantity > maximumQuantityOfItem) {
-            setQuantity(maximumQuantityOfItem);
-        }
-        else {
-            setQuantity(newQuantity);
-        }
-
+const increaseQuantity = () => {
+    const newQuantity = Number(quantity) + 1;
+    if (newQuantity <= maximumQuantityOfItem) {
+        setQuantity(newQuantity);
+        console.log("newQuantity "+newQuantity)
     }
+};
 
-    const decreaseQuantity = () => {
-        console.log("clicked")
-        const newQuantity = Number(quantity) - 1;
-        if (newQuantity < minimumQuantityOfItem) {
-            setQuantity(minimumQuantityOfItem)
-        }
-        else {
-            setQuantity(newQuantity);
-        }
+const decreaseQuantity = () => {
+    const newQuantity = Number(quantity) - 1;
+    if (newQuantity >= minimumQuantityOfItem) {
+        setQuantity(newQuantity);
     }
+};
 
-    const handleQuantityChange = (e) => {
-        const inputValue = e.target.value;
-        setQuantity(e.target.value);
-    }
+
+  
 
 
 
@@ -151,21 +154,39 @@ const Item = (props) => {
     
     const addToCart = async () => {
         if (quantity < minimumQuantityOfItem || quantity > maximumQuantityOfItem) {
-            alert(`minimum quantity of this product is ${minimumQuantityOfItem} & maximum quantity of this product is ${maximumQuantityOfItem} `);
+            alert(`Minimum quantity of this product is ${minimumQuantityOfItem} & maximum quantity of this product is ${maximumQuantityOfItem}`);
             return;
         }
+    
         try {
             const cartRef = collection(firestore, 'carts');
             if (localStorage.getItem('userId')) {
                 const q = query(cartRef, where("userId", "==", localStorage.getItem('userId')));
                 const querySnapshot = await getDocs(q);
+                let docRef;
+    
                 if (querySnapshot.empty) {
-                    const docRef = await addDoc(cartRef, {
+                    docRef = await addDoc(cartRef, {
                         userId: localStorage.getItem('userId')
-                    })
-
-                    const itemsCollection = collection(firestore, "carts", docRef.id, "items");
-                    const itemRef = await addDoc(itemsCollection, {
+                    });
+                } else {
+                    docRef = querySnapshot.docs[0].id;
+                }
+    
+                const itemsCollection = collection(firestore, "carts", docRef, "items");
+                const itemQuery = query(itemsCollection, where("productId", "==", props.id), where("variantId", "==", selectedVariant.variationId));
+                const itemDoc = await getDocs(itemQuery);
+    
+                if (!itemDoc.empty) {
+                    itemDoc.forEach(async (idoc) => {
+                        const itemRef = doc(firestore, "carts", docRef, "items", idoc.id);
+                        await updateDoc(itemRef, {
+                            pricePerPiece: pricePerPiece,
+                            quantity: quantity
+                        });
+                    });
+                } else {
+                    await addDoc(itemsCollection, {
                         productId: props.id,
                         variantId: selectedVariant.variationId,
                         quantity: quantity,
@@ -174,51 +195,23 @@ const Item = (props) => {
                         pricePerPiece: pricePerPiece,
                         variantName: selectedVariant.name,
                         productBrand: props.brand
-
-                    })
-
+                    });
                 }
-                else {
-
-                    const currdoc = querySnapshot.docs[0];
-
-                    const existingItemsCollection = collection(firestore, 'carts', currdoc.id, "items");
-                    const itemQuery = query(existingItemsCollection, where("productId", "==", props.id), where("variantId", "==", selectedVariant.variationId));
-                    const itemDoc = await getDocs(itemQuery);
-                    if (!itemDoc.empty) {
-                        itemDoc.forEach(async (idoc) => {
-                            const itemRef = doc(firestore, "carts", currdoc.id, "items", idoc.id);
-                            await updateDoc(itemRef, {
-                                pricePerPiece: pricePerPiece,
-                                quantity: quantity
-
-                            })
-                        });
-                    } else {
-                        const itemRef = await addDoc(existingItemsCollection, {
-                            productId: props.id,
-                            variantId: selectedVariant.variationId,
-                            quantity: quantity,
-                            productImage: props.image,
-                            productTitle: props.title,
-                            pricePerPiece: pricePerPiece,
-                            variantName: selectedVariant.name,
-                            productBrand: props.brand
-
-                        })
-                    }
-                }
+    
                 getCartTotal();
-
             } else {
                 alert("Sign in first");
-                return;
             }
         } catch (err) {
-            console.error(err)
+            console.error(err);
         }
-    }
-
+    };
+    
+    useEffect(() => {
+        console.log("Current quantity:", quantity);
+    }, [quantity]);
+   
+    
     const getCartTotal = async () => {
         const q = query(collection(firestore, "carts"), where("userId", "==", localStorage.getItem("userId")));
         const querySnapshot = await getDocs(q);
@@ -237,10 +230,22 @@ const Item = (props) => {
         }
 
     }
+    
+    const handleQuantityChange = (e) => {
+        const inputValue = e.target.value;
+        setQuantity(e.target.value);
 
+    }
+    useEffect(() => {
+        // Only set the quantity when the data is fetched and available
+        if (prices.length > 0) {
+            setQuantity(minimumQuantityOfItem); 
+            console.log(minimumQuantityOfItem)// Set initial quantity to the minimum quantity
+        }
+    }, []);
     return (
 
-        <div className="w-11/12 p-2 lg:p-4 sm:w-full h-60 sm:h-96 bg-white border-2 shadow-md rounded-xl">
+        <div className="w-11/12 p-2 lg:p-4 sm:w-full lg:h-auto sm:h-auto bg-white border-2 shadow-md rounded-xl">
             {selectedVariant && <>
                 <div className='w-full sm:pt-4 flex justify-around sm:flex-col' >
 
@@ -312,7 +317,7 @@ const Item = (props) => {
                                     <span className="text-gray-500 font-medium">Available Quantity:</span>
                                     <span className="text-black">{maximumQuantityOfItem}</span>
                                 </div>
-                                <button className="mt-2 w-full rounded-md flex gap-2 py-2 justify-center items-center bg-blue-500 hover:bg-blue-400" onClick={addToCart}>
+                                <button className="mt-2 w-full hidden sm:inline-flex rounded-md flex gap-2 py-2 justify-center items-center bg-blue-500 hover:bg-blue-400" onClick={addToCart}>
                                     <ShoppingCartIcon className="w-auto h-5 text-white" />
                                     <span className="text-white font-medium text-sm">Add To Cart</span>
                                 </button>
@@ -320,10 +325,6 @@ const Item = (props) => {
                         ) : (
                             <div className="text-red-500 mt-2 text-sm font-medium">Out of Stock</div>
                         )}
-
-
-
-
                     </div>
                 </div>
                 <div className='block sm:hidden'>

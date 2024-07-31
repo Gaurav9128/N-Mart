@@ -9,14 +9,12 @@ import FooterComponent from '../components/FooterComponent';
 import { UserAuth } from '../hooks/useAuth';
 import { UserVerifiedStatus } from '../hooks/useAuth';
 const cart = () => {
-
-    
     const userId = localStorage.getItem("userId");
     const [cartItems, setCartItems ] = useState();
     const [cartTotal, setCartTotal] = useState();
     const navigate = useNavigate();
-    // const user = UserAuth();
-    // console.log("user: ",user);
+    const user = UserAuth();
+    console.log("user: ",user);
 
     useEffect(() => {
         getCartItems();

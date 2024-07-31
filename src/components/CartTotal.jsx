@@ -1,10 +1,40 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const CartTotal = ({ cartItems }) => {
+  const [cartTotal, setCartTotal] = useState(0);
+  const [savings, setSavings] = useState(0);
+  const [warning, setWarning] = useState('');
+
   useEffect(() => {
-    console.log('cartItems:', cartItems);
+    const total = cartItems.reduce((acc, currItem) => {
+      const discountPrice = currItem.discountPrice || 0;
+      if (currItem.pricePerPiece && currItem.quantity) {
+        return acc + (currItem.pricePerPiece * currItem.quantity);
+      }
+      return acc;
+    }, 0);
+    setCartTotal(total);
   }, [cartItems]);
-  
+
+  useEffect(() => {
+    const totalSavings = cartItems.reduce((acc, currItem) => {
+      const discountPrice = currItem.discountPrice || 0;
+      if (currItem.pricePerPiece && currItem.quantity) {
+        return acc + ((currItem.pricePerPiece - discountPrice) * currItem.quantity);
+      }
+      return acc;
+    }, 0);
+    setSavings(totalSavings);
+  }, [cartItems]);
+
+  useEffect(() => {
+    if (cartTotal < 5000) {
+      setWarning('Warning: Total amount exceeds ₹5000');
+    } else {
+      setWarning('');
+    }
+  }, [cartTotal]);
+
   return (
     <div className="mt-6 h-full md:mt-0 w-full lg:w-1/4">
       <div className="border bg-white rounded-sm shadow-md">
@@ -13,20 +43,7 @@ const CartTotal = ({ cartItems }) => {
         </div>
         <div className="py-4 w-11/12 mx-auto flex border-b justify-between">
           <p className="text-gray-700">Cart Total</p>
-          <p className="text-green-700">₹{cartItems.reduce((acc, currItem) => {
-            const discountPrice = currItem.discountPrice || 0; // Default to 0 if discountPrice is undefined
-            console.log("Discount Price:", discountPrice); // Debugging log
-            if (
-              currItem.pricePerPiece &&
-              currItem.quantity 
-            ) {
-              const savingsPerItem = (currItem.pricePerPiece - discountPrice) * currItem.quantity;
-              return acc + savingsPerItem;
-            } else {
-              return acc;
-            }
-          }, 0)}</p>
-
+          <p className="text-green-700">₹{cartTotal}</p>
         </div>
         <div className="py-4 w-11/12 mx-auto flex border-b justify-between">
           <p className="text-gray-700">Delivery Charge</p>
@@ -34,22 +51,20 @@ const CartTotal = ({ cartItems }) => {
         </div>
         <div className="py-4 w-11/12 mx-auto flex justify-between">
           <p className="text-gray-700">Savings</p>
-          <p className="text-green-700">₹{cartItems.reduce((acc, currItem) => {
-            const discountPrice = currItem.discountPrice || 0; // Default to 0 if discountPrice is undefined
-            console.log("Discount Price:", discountPrice); // Debugging log
-            if (
-              currItem.pricePerPiece &&
-              currItem.quantity 
-            ) {
-              const savingsPerItem = 0;
-              return acc + savingsPerItem;
-            } else {
-              return acc;
-            }
-          }, 0)}</p>
+          <p className="text-green-700">₹{savings}</p>
         </div>
+        {warning && (
+          <div className="py-4 w-11/12 mx-auto flex justify-between">
+            <p className="text-red-700">{warning}</p>
+          </div>
+        )}
       </div>
-      <button className="mt-6 w-full rounded-md bg-blue-500 py-2 font-medium text-white hover:bg-blue-400">PROCEED TO CHECKOUT</button>
+      <button
+        className="mt-6 w-full rounded-md bg-blue-500 py-2 font-medium text-white hover:bg-blue-400"
+        disabled={cartTotal > 5000}
+      >
+        PROCEED TO CHECKOUT
+      </button>
     </div>
   );
 }

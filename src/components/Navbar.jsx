@@ -6,13 +6,11 @@ import { ChevronDownIcon, MapPinIcon, ShoppingCartIcon } from "@heroicons/react/
 import { collection, getDocs, query , where} from 'firebase/firestore';
 import { firestore } from '../firebase/FirebaseConfig';
 import { useNavigate } from 'react-router-dom';
-import { getAuth} from 'firebase/auth';
+import { getAuth,signOut, onAuthStateChanged } from 'firebase/auth';
 import CartIcon from './CartIcon';
 import LocationModal from './LocationModal';
 import CategoryBanner from './CategoryBanner';
-import { loggingOut, UserAuth } from '../hooks/useAuth';
-import { useRecoilState } from 'recoil';
-import { userState } from '../store/atoms/userState';
+import { UserAuth } from '../hooks/useAuth';
 
 const Navbar = () => {
 
@@ -23,12 +21,9 @@ const Navbar = () => {
 
     const [categories, setCategories] = useState([]);
     const navigate = useNavigate();
-    const auth = getAuth();
-    const [user, setUser] = useRecoilState(userState);
-    
+    const user = UserAuth();
 
     useEffect(() => {
-        console.log(user);
         getCategories();
         if(user==null){
             const timerId = setTimeout(() =>{
@@ -42,10 +37,19 @@ const Navbar = () => {
         
     },[user]);
 
+    const auth = getAuth();
+
     
     const logOut = () => {
-        loggingOut(auth, setUser, navigate);
 
+        signOut(auth).then(() => {
+            localStorage.removeItem("userId")
+            localStorage.removeItem("token")
+            window.location.reload();
+            
+        }).catch((error) => {
+        // An error happened.
+        });
     }
 
     const getCategories = async() => {
@@ -115,7 +119,7 @@ const Navbar = () => {
                         onKeyDown={(e) => {e.key==='Enter'?navigate(`/search?searchItem=${searchIterm}`):""}}
                         onChange={(e) => {setSearchIterm(e.target.value)}} />
                         <button
-                        className=" h-10 flex items-center rounded-r bg-blue-500 hover:scale-105 px-6 py-2.5 text-xs font-medium uppercase leading-tight text-white shadow-md transition duration-150 ease-in-out hover:bg-primary-700 hover:shadow-lg focus:bg-primary-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-primary-800 active:shadow-lg"
+                        className=" h-10 z-[2] flex items-center rounded-r bg-blue-500 hover:scale-105 px-6 py-2.5 text-xs font-medium uppercase leading-tight text-white shadow-md transition duration-150 ease-in-out hover:bg-primary-700 hover:shadow-lg focus:bg-primary-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-primary-800 active:shadow-lg"
                         type="button"
                         id="button-addon1"
                         data-te-ripple-init

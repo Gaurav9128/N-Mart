@@ -18,7 +18,7 @@ const categories = [{
   displayName : 'Shampoos'
 },
 {
-  name : 'freshenerssc2',
+  name : 'Freshner&Repellents-aesc-Freshner%20&%20Repellents',
   displayName : 'Fresheners'
 },
 {

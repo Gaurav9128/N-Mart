@@ -140,6 +140,7 @@ const RegisterModal = (props) => {
         const sanitizedValue = value.replace(/\D/g, '');
         // Limit the input to 10 digits
         const truncatedValue = sanitizedValue.slice(0, 10);
+        console.log(truncatedValue)
         setFormData(prevData => ({
             ...prevData,
             [name]: truncatedValue,

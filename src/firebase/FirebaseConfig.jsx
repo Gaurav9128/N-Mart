@@ -18,6 +18,16 @@ const firebaseConfig = {
   measurementId: "G-RMVC0ZBYN1"
 };
 
+// const firebaseConfig = {
+//   apiKey: "AIzaSyCjMDeZfnLx0ZbEacq-yJQ-ad6IkNZK8KQ",
+//   authDomain: "ajmer-n-mart.firebaseapp.com",
+//   projectId: "ajmer-n-mart",
+//   storageBucket: "ajmer-n-mart.appspot.com",
+//   messagingSenderId: "23005225518",
+//   appId: "1:23005225518:web:459423a45d6537da9c35bf",
+//   measurementId: "G-9GV8F8QB6V"
+// };
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);

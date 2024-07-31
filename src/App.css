@@ -10,6 +10,7 @@
   
   .original-image {
     width: 100%; /* Adjust as necessary */
+    height: 300px;
   }
   
   .zoomed-image-container {
@@ -29,5 +30,5 @@
     position: absolute;
   }
   .original-image {
-    width: auto;
+    width: 300px;
 }

@@ -1,24 +1,23 @@
 import React, { useState, Fragment, useEffect } from 'react';
-import { Listbox, Transition } from '@headlessui/react'
+import { Listbox, Transition } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon, XMarkIcon } from '@heroicons/react/20/solid';
 import { storage, firestore } from "../firebase/FirebaseConfig";
 import { addDoc, collection, getDocs, runTransaction, doc } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
-import Loader from './Loader'
+import Loader from './Loader';
 import { z } from "zod";
 
 const AddProduct = () => {
-
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [selectedCategory, setSelectedCategory] = useState();
-    const [categories, setCategories] = useState();
+    const [categories, setCategories] = useState([]);
     const [variationInput, setVariationInput] = useState("");
     const [variations, setVariations] = useState([]);
     const [quantity, setQuantity] = useState([]);
-    const [minQuantity, setMinQuantity] = useState('');
-    const [maxQuantity, setMaxQuantity] = useState('');
-    const [price, setPrice] = useState('');
+    const [minQuantity, setMinQuantity] = useState([]);
+    const [maxQuantity, setMaxQuantity] = useState([]);
+    const [price, setPrice] = useState([]);
     const [priceRanges, setPriceRanges] = useState([]);
     const [tags, setTags] = useState([]);
     const [image, setImage] = useState([]);
@@ -27,55 +26,84 @@ const AddProduct = () => {
     const [brand, setBrand] = useState("");
     const [loading, setLoading] = useState(false);
     const [visible, setVisible] = useState(true);
+    const [discount1, setDiscount1] = useState("");
+    const [discount2, setDiscount2] = useState("");
+    const [mrp, setMrp] = useState([]);
+
 
     useEffect(() => {
         getCategory();
     }, []);
 
-    //zod schema verification
+    // zod schema verification
     const URLRegex = /^(ftp|http|https):\/\/[^ "]+$/;
 
     const ProductSchema = z.object({
-        title: z.string().min(1).max(100), // Ensuring title length is between 1 and 100 characters
-        description: z.string().min(1), // Ensuring description is not empty
-        category: z.string().min(1), // Ensuring category is not empty
-        tags: z.array(z.string()).max(10), // Allowing up to 10 tags
-        image: z.array(z.string().refine(url => URLRegex.test(url), { message: "Invalid URL format" })).min(1), // Validating URL format for images
-        voucher: z.string().optional(), // Optional voucher field
-        brand: z.string().min(1), // Ensuring brand is not empty
-        visible: z.boolean()
+        title: z.string().min(1).max(100),
+        description: z.string().min(1),
+        category: z.string().min(1),
+        tags: z.array(z.string()).max(10),
+        image: z.array(z.string().refine(url => URLRegex.test(url), { message: "Invalid URL format" })).min(1),
+        voucher: z.string().optional(),
+        brand: z.string().min(1),
+        visible: z.boolean(),
+        discount1: z.string().optional(),
+        discount2: z.string().optional(),
     });
+    
 
     const VariationSchema = z.object({
         name: z.string().min(1).max(50),
         quantity: z.number().int().min(0),
-        price: z.number().min(0), // Ensuring price is a number and non-negative
+        price: z.number().min(0),
     });
 
     const getCategory = async () => {
         const querySnapshot = await getDocs(collection(firestore, "categories"));
         const extractedNames = querySnapshot.docs.map(doc => doc.id);
         setCategories(extractedNames);
-    }
+    };
 
     const addRange = (index) => {
-        if (isNaN(minQuantity[index]) || isNaN(maxQuantity[index]) || isNaN(price[index])) {
+        const minQty = parseFloat(minQuantity[index]);
+        const maxQty = parseFloat(maxQuantity[index]);
+        const Qty = parseFloat(quantity[index]);
+        const priceVal = parseFloat(price[index]);
+    
+        if (isNaN(minQty) || isNaN(maxQty) || isNaN(priceVal)) {
             alert("Ranges field cannot be empty");
             return;
         }
-        if (minQuantity[index] >= maxQuantity[index]) {
+    
+        if (minQty >= maxQty) {
             alert("Minimum quantity cannot be greater than Maximum Quantity");
             return;
         }
+        if (maxQty > Qty) {
+            alert("Minimum quantity cannot be greater than Maximum Quantity");
+            return;
+        }
+    
         if (!priceRanges[index]) {
             priceRanges[index] = [];
         }
-        priceRanges[index].push([minQuantity[index], maxQuantity[index], parseFloat(price[index])]); // Changed to parseFloat
+    
+        priceRanges[index].push([minQty, maxQty, priceVal]);
         setPriceRanges([...priceRanges]);
-        setMinQuantity('');
-        setMaxQuantity('');
-        setPrice('');
+    
+        const newMinQuantity = [...minQuantity];
+        const newMaxQuantity = [...maxQuantity];
+        const newPrice = [...price];
+    
+        newMinQuantity[index] = '';
+        newMaxQuantity[index] = '';
+        newPrice[index] = '';
+    
+        setMinQuantity(newMinQuantity);
+        setMaxQuantity(newMaxQuantity);
+        setPrice(newPrice);
     };
+    
 
     const handleImageChange = (e) => {
         const files = Array.from(e.target.files);
@@ -87,19 +115,14 @@ const AddProduct = () => {
     };
 
     const addTag = (e) => {
-        if (e.key === "Enter") {
-            if (e.target.value.length > 0) {
-                setTags([...tags, e.target.value]);
-                e.target.value = "";
-            }
+        if (e.key === "Enter" && e.target.value.length > 0) {
+            setTags([...tags, e.target.value]);
+            e.target.value = "";
         }
     };
 
     const removeTag = (removedTag) => {
-        const newTags = tags.filter(
-            (tag) => tag !== removedTag
-        );
-        setTags(newTags);
+        setTags(tags.filter(tag => tag !== removedTag));
     };
 
     const addVariation = () => {
@@ -108,24 +131,29 @@ const AddProduct = () => {
             return;
         }
         setVariations([...variations, variationInput]);
+        setMrp([...mrp, ""]); // Initialize MRP value
         setVariationInput("");
     };
 
-    const removeVariation = (removedVariation) => {
-        const newarr = [];
-        let indx = -1;
-        for (let i = 0; i < variations.length; i++) {
-            if (variations[i] === removedVariation) {
-                indx = i;
-                continue;
-            }
-            newarr.push(variations[i]);
-        }
-        setVariations(newarr);
 
-        const newQ = quantity.filter((q, i) => i !== indx);
-        setQuantity(newQ);
-        const newPriceRanges = priceRanges.filter((q, i) => i !== indx);
+    const removeImage = (index) => {
+        const newImages = [...image];
+        newImages.splice(index, 1);
+        setImage(newImages);
+
+        const newPreviews = [...imagePreview];
+        newPreviews.splice(index, 1);
+        setImagePreview(newPreviews);
+    };
+
+    const removeVariation = (removedVariation) => {
+        const newVariations = variations.filter((variation, i) => variation !== removedVariation);
+        setVariations(newVariations);
+
+        const newQuantity = quantity.filter((q, i) => i !== removedVariation);
+        setQuantity(newQuantity);
+
+        const newPriceRanges = priceRanges.filter((range, i) => i !== removedVariation);
         setPriceRanges(newPriceRanges);
     };
 
@@ -133,6 +161,7 @@ const AddProduct = () => {
         e.preventDefault();
         setLoading(true);
         const prodRef = collection(firestore, "products");
+    
         try {
             let imgUrls = [];
             for (let i = 0; i < image.length; i++) {
@@ -141,74 +170,125 @@ const AddProduct = () => {
                 const url = await getDownloadURL(imgRef);
                 imgUrls.push(url);
             }
-
+    
             try {
                 const validatedProduct = ProductSchema.parse({
-                    title: title,
-                    description: description,
+                    title,
+                    description,
                     category: selectedCategory,
-                    tags: tags,
+                    tags,
                     image: imgUrls,
-                    voucher: voucher,
-                    brand: brand,
-                    visible: visible,
+                    voucher,
+                    brand,
+                    discount1,
+                    discount2,
+                    visible,
                 });
-
+    
                 const variationDataArray = variations.map((variation, index) => ({
                     name: variation,
-                    quantity: quantity[index],
-                    price: parseFloat(price[index]), // Ensuring price is handled as a decimal
+                    quantity: parseInt(quantity[index], 10),
+                    price: parseFloat(price[index]),
+                    mrp: parseFloat(mrp[index]), // Add MRP value here
                 }));
-
+    
                 await runTransaction(firestore, async (transaction) => {
                     const docRef = doc(prodRef);
                     transaction.set(docRef, validatedProduct);
                     const variationsCollection = collection(firestore, "products", docRef.id, "variations");
-                    let x = 0;
-                    for (const variation of variationDataArray) {
+    
+                    for (const [index, variation] of variationDataArray.entries()) {
                         const variationdocRef = doc(variationsCollection);
                         transaction.set(variationdocRef, variation);
-
+    
                         const pricesCollection = collection(firestore, "products", docRef.id, "variations", variationdocRef.id, "prices");
-                        const pricesOfThisVariation = priceRanges[x];
-                        for (let i = 0; i < pricesOfThisVariation.length; i++) {
-                            const priceData = {
-                                minQuantity: pricesOfThisVariation[i][0],
-                                maxQuantity: pricesOfThisVariation[i][1],
-                                price: pricesOfThisVariation[i][2]
-                            };
+                        for (const priceData of priceRanges[index]) {
                             const priceDocRef = doc(pricesCollection);
-                            transaction.set(priceDocRef, priceData);
+                            transaction.set(priceDocRef, {
+                                minQuantity: priceData[0],
+                                maxQuantity: priceData[1],
+                                price: priceData[2],
+                            });
                         }
-                        x++;
                     }
                 });
+    
                 setLoading(false);
                 alert("Product added");
-                setTitle("");
-                setDescription("");
-                setSelectedCategory(undefined);
-                setVariationInput("");
-                setVariations([]);
-                setBrand("");
-                setPrice([]);
-                setQuantity([]);
-                setVoucher("");
-                setTags([]);
-                setPriceRanges([]);
-                setImage([]);
-                setImagePreview([]);
-
+                resetForm();
             } catch (prodError) {
-                console.log(prodError);
-                alert("Product data is invalid", prodError);
+                console.error(prodError);
+                alert("Product data is invalid");
                 setLoading(false);
             }
-
         } catch (e) {
             console.error(e);
             setLoading(false);
         }
+    };
+    
+    const handlemrpdis = (index, e) => {
+        if (!mrp) {
+            return;
+        }
+        console.log(e);
+        let totalmrp = parseFloat(e) || 0; // Ensure totalmrp is a number
+        if (discount1) {
+            let disamount = totalmrp * discount1 / 100;
+            totalmrp -= disamount;
+        }
+        if (discount2) {
+            let disamount = totalmrp * discount2 / 100;
+            totalmrp -= disamount;
+        }
+    
+        const newPrice = [...price];
+        newPrice[index] = totalmrp.toFixed(2);
+        setPrice(newPrice);
+    };
+    
+    useEffect(() => {
+        if (Array.isArray(mrp)) {
+            setPrice(prevPrice => {
+                return mrp.map((mrpValue, index) => {
+                    let totalmrp = parseFloat(mrpValue) || 0; // Ensure totalmrp is a number
+                    if (discount1) {
+                        let disamount = totalmrp * discount1 / 100;
+                        totalmrp -= disamount;
+                    }
+                    if (discount2) {
+                        let disamount = totalmrp * discount2 / 100;
+                        totalmrp -= disamount;
+                    }
+                    return totalmrp.toFixed(2);
+                });
+            });
+        } else {
+            console.error("Expected mrp to be an array but got:", mrp);
+            // Optionally, handle the case where mrp is not an array
+        }
+    }, [discount1, discount2]);
+    
+    
+
+
+    const resetForm = () => {
+        setTitle("");
+        setDescription("");
+        setSelectedCategory(undefined);
+        setVariationInput("");
+        setVariations([]);
+        setBrand("");
+        setPrice([]);
+        setQuantity([]);
+        setVoucher("");
+        setTags([]);
+        setPriceRanges([]);
+        setImage([]);
+        setImagePreview([]);
+        setDiscount1("");
+        setDiscount2("");
+        setMrp("");
     };
 
     return (
@@ -276,11 +356,16 @@ const AddProduct = () => {
 
             <div className="md:col-span-5">
                 <label htmlFor="image">Upload Image</label>
-                <input type="file" name="image" id="image" className="h-10 border mt-1 rounded px-4 w-full bg-gray-50" onChange={handleImageChange} multiple />
+                <input type="file" name="image" id="image" accept=".png, .jpg, .jpeg, .img" className="h-10 border mt-1 rounded px-4 w-full bg-gray-50" onChange={handleImageChange} multiple />
             </div>
             <div className="md:col-span-5 flex flex-wrap gap-2 mt-2">
-                {imagePreview.map((preview, index) => (
-                    <img key={index} src={preview} alt="Preview" className="w-24 h-24 object-cover" />
+                {imagePreview.map((imgSrc, index) => (
+                    <div key={index} className="relative">
+                        <img src={imgSrc} alt={`Preview ${index}`} className="h-20 w-20 object-cover" />
+                        <button type="button" className="absolute top-0 right-0" onClick={() => removeImage(index)}>
+                            <XMarkIcon className="w-5 h-5 text-red-500" />
+                        </button>
+                    </div>
                 ))}
             </div>
 
@@ -293,7 +378,14 @@ const AddProduct = () => {
                 <label htmlFor="brand">Brand</label>
                 <input type="text" name="brand" id="brand" className="h-10 border mt-1 rounded px-4 w-full bg-gray-50" value={brand || ''} onChange={(e) => setBrand(e.target.value)} />
             </div>
-
+            <div className="md:col-span-5">
+                <label htmlFor="discount1">Discount 1 (in %)</label>
+                <input type="number" name="discount1" id="discount1" className="h-10 border mt-1 rounded px-4 w-full bg-gray-50" placeholder="Discount 1 (in %)" value={discount1} onChange={(e) => { setDiscount1(e.target.value) }} />
+            </div>
+            <div className="md:col-span-5">
+                <label htmlFor="discount2">Discount 2 (in %)</label>
+                <input type="number" name="discount2" id="discount2" className="h-10 border mt-1 rounded px-4 w-full bg-gray-50" placeholder="Discount 2 (in %)" value={discount2} onChange={(e) => { setDiscount2(e.target.value) }} />
+            </div>
             <div className="md:col-span-5">
                 <label htmlFor="tags">Tags (Press Enter to Add)</label>
                 <input type="text" name="tags" id="tags" className="h-10 border mt-1 rounded px-4 w-full bg-gray-50" onKeyDown={addTag} />
@@ -310,16 +402,25 @@ const AddProduct = () => {
                 <label htmlFor="variations">Variations</label>
                 <div className="flex gap-2">
                     <input type="text" name="variations" id="variations" className="h-10 border mt-1 rounded px-4 w-full bg-gray-50" value={variationInput} onChange={(e) => setVariationInput(e.target.value)} />
-                    <button type="button" className="bg-blue-500 text-white px-4 py-2 rounded mt-1" onClick={addVariation}>Add</button>
+                    <button type="button" className="bg-blue-500 text-white px-4 py-2 rounded mt-1" onClick={() => { addVariation() }}>Add</button>
                 </div>
                 <div className="flex flex-wrap gap-2 mt-2">
                     {variations.map((variation, index) => (
-                        <span key={index} className="bg-green-200 text-green-800 px-2 py-1 rounded-full flex items-center gap-1">
-                            {variation} <XMarkIcon className="h-4 w-4 cursor-pointer" onClick={() => removeVariation(variation)} />
-                        </span>
+                        <div key={index} className="flex flex-col gap-2 mt-2">
+                            <span className="bg-green-200 text-green-800 px-2 py-1 rounded-full flex items-center gap-1">
+                                {variation} <XMarkIcon className="h-4 w-4 cursor-pointer" onClick={() => removeVariation(variation)} />
+                            </span>
+                            <input type="number" name={`mrp-${index}`} id={`mrp-${index}`} className="h-10 border rounded px-4 w-full bg-gray-50" placeholder={`MRP for ${variation}`} value={mrp[index] || ''} onChange={(e) => {
+                                const newMrp = [...mrp];
+                                newMrp[index] = e.target.value;
+                                handlemrpdis(index,e.target.value);
+                                setMrp(newMrp);
+                            }} />
+                        </div>
                     ))}
                 </div>
             </div>
+
 
             <div className="md:col-span-5">
                 <label htmlFor="quantity">Quantity</label>
