@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 
-const CartTotal = ({ cartItems }) => {
+const CartTotal = ({ cartItems, onCheckout }) => {
   const [cartTotal, setCartTotal] = useState(0);
   const [savings, setSavings] = useState(0);
   const [warning, setWarning] = useState('');
 
   useEffect(() => {
     const total = cartItems.reduce((acc, currItem) => {
-      const discountPrice = currItem.discountPrice || 0;
       if (currItem.pricePerPiece && currItem.quantity) {
         return acc + (currItem.pricePerPiece * currItem.quantity);
       }
@@ -59,12 +58,13 @@ const CartTotal = ({ cartItems }) => {
           </div>
         )}
       </div>
-      <button
+      {(cartTotal>=5000)&&<button
         className="mt-6 w-full rounded-md bg-blue-500 py-2 font-medium text-white hover:bg-blue-400"
-        disabled={cartTotal > 5000}
+        disabled={cartTotal < 5000}
+        onClick={onCheckout}
       >
         PROCEED TO CHECKOUT
-      </button>
+      </button>}
     </div>
   );
 }

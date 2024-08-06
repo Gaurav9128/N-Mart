@@ -189,9 +189,6 @@ const UpdateProduct = () => {
       alert("Error updating product");
     }
   };
-  
-  
-
   const handleVariationChange = (index, field, value) => {
     const updatedVariations = [...variations];
     updatedVariations[index][field] = value;

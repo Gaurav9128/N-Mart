@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { firestore } from '../firebase/FirebaseConfig'; // Adjust import based on your project structure
-import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, setDoc } from 'firebase/firestore';
 
 const UserCouponManager = () => {
   const [users, setUsers] = useState([]);
@@ -47,20 +47,23 @@ const UserCouponManager = () => {
       alert('Please fill in all fields');
       return;
     }
-    
+
     try {
       const couponRef = doc(firestore, 'coupons', couponCode);
-      await updateDoc(couponRef, {
+      
+      // Use setDoc to create or update the document
+      await setDoc(couponRef, {
         user: selectedUser,
         code: couponCode,
         startDate,
         endDate,
         isActive,
-      });
+      }, { merge: true });
+
       alert('Coupon added/updated successfully');
     } catch (error) {
-      console.error("Error adding/updating coupon:", error);
-      alert('Failed to add/update coupon');
+      console.error("Error adding/updating coupon:", error.message); // Log the error message
+      alert('Failed to add/update coupon: ' + error.message); // Show the error message in the alert
     }
   };
 
