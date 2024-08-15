@@ -17,63 +17,68 @@ const ImportData = () => {
       alert('Please select a file.');
       return;
     }
-
+  
     setLoading(true);
     setError(null);
-
+  
     try {
       if (!file.type.includes('excel') && !file.type.includes('sheet')) {
         throw new Error('Invalid file type. Please upload an Excel file.');
       }
-
+  
       const data = await file.arrayBuffer();
       const workbook = XLSX.read(data, { type: 'array' });
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
       const jsonData = XLSX.utils.sheet_to_json(worksheet);
-
+  
       if (!Array.isArray(jsonData) || jsonData.length === 0) {
         throw new Error('No data found in the file.');
       }
-
+  
       const batch = writeBatch(firestore);
-
+  
       for (const row of jsonData) {
-        const { productId, title, description, category, variationName, quantity, price, minQuantity, maxQuantity } = row;
-
-        if (!productId || !variationName) {
+        const { productId, title, description, category, variationId, quantity, price, minQuantity, maxQuantity } = row;
+  
+        if (!productId || !variationId) {
           console.warn('Missing required fields in row:', row);
           continue;
         }
-
+  
         const productDocRef = doc(firestore, 'products', productId);
+        const variationDocRef = doc(productDocRef, 'variations', variationId);
+        const priceDocRef = doc(variationDocRef, 'prices', `${minQuantity}-${maxQuantity}`);
+  
         const productSnapshot = await getDoc(productDocRef);
-
+        const variationSnapshot = await getDoc(variationDocRef);
+        const priceSnapshot = await getDoc(priceDocRef);
+  
         if (productSnapshot.exists()) {
+          // Update product details if they exist
           batch.update(productDocRef, { title, description, category });
         } else {
-          batch.set(productDocRef, { title, description, category });
+          console.warn(`Product ID ${productId} not found in the database.`);
+          continue;
         }
-
-        const variationDocRef = doc(productDocRef, 'variations', variationName);
-        const variationSnapshot = await getDoc(variationDocRef);
-
+  
         if (variationSnapshot.exists()) {
+          // Update variation details if they exist
           batch.update(variationDocRef, { quantity, price });
         } else {
-          batch.set(variationDocRef, { name: variationName, quantity, price });
+          console.warn(`Variation ID ${variationId} not found in the database.`);
+          continue;
         }
-
-        const priceDocRef = doc(variationDocRef, 'prices', `${minQuantity}-${maxQuantity}`);
-        const priceSnapshot = await getDoc(priceDocRef);
-
+  
         if (priceSnapshot.exists()) {
+          // Update price details if they exist
           batch.update(priceDocRef, { minQuantity, maxQuantity, price });
         } else {
-          batch.set(priceDocRef, { minQuantity, maxQuantity, price });
+          console.warn(`Price range ${minQuantity}-${maxQuantity} not found for Variation ID ${variationId}.`);
+          continue;
         }
       }
-
+  
       await batch.commit();
       alert('Data imported successfully!');
     } catch (error) {
@@ -83,6 +88,7 @@ const ImportData = () => {
       setLoading(false);
     }
   };
+  
 
   return (
     <div>

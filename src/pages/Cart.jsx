@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
-import { collection, doc, getDocs, query, where, setDoc, Timestamp, deleteDoc } from 'firebase/firestore';
+import { collection, doc, getDocs,getDoc, addDoc,query, where, setDoc, Timestamp, deleteDoc } from 'firebase/firestore';
 import { firestore } from '../firebase/FirebaseConfig';
 import CartTotal from '../components/CartTotal';
 import CartItem from '../components/CartItem';
 import { useNavigate } from 'react-router-dom';
 import FooterComponent from '../components/FooterComponent';
 import { UserAuth } from '../hooks/useAuth';
+import axios from 'axios'; // Use ES6 import for axios
 
 const Cart = () => {
     const userId = localStorage.getItem("userId");
     const [cartItems, setCartItems] = useState([]);
     const [cartTotal, setCartTotal] = useState(0);
+    const [savings, setSavings] = useState(0);
     const [couponCode, setCouponCode] = useState('');
     const [isCouponValid, setIsCouponValid] = useState(null);
     const navigate = useNavigate();
@@ -20,28 +22,53 @@ const Cart = () => {
     useEffect(() => {
         getCartItems();
     }, []);
+    // useEffect(() => {
+    //    const fetch  = async ()=>{
+    //     const queryParams = new URLSearchParams(window.location.search);
+    //     const status = queryParams.get('status');
+        
+    //     if (status) {
+    //         if (status === 'Success') {
+    //             alert('Success');
+    //         } else if (status === 'Aborted') {
+    //             alert('Operation Aborted');
+    //         } else {
+    //             alert(`Status: ${status}`);
+    //             await addDoc(collection(firestore, 'orderDetails'), {
+    //                 ...orderDetails,
+    //                 paymentStatus: 'Online Paymnet'
+    //             });
+    //             const cartQuery = query(collection(firestore, "carts"), where("userId", "==", userId));
+    //             const cartSnapshot = await getDocs(cartQuery);
+        
+    //             clearCart()
+    //             alert('Your Order Successfully Placed');
+    //         }
+    //     }
+    //    }
+    //    fetch();
+    // }, []);
 
     const getCartItems = async () => {
-      try {
-          const q = query(collection(firestore, 'carts'), where("userId", "==", localStorage.getItem('userId')));
-          const querySnapshot = await getDocs(q);
-          if (!querySnapshot.empty) {
-              const currdoc = querySnapshot.docs[0];
-              const itemsCollection = collection(firestore, 'carts', currdoc.id, "items");
-              const itemsSnapshot = await getDocs(itemsCollection);
-              const cartItemsArray = itemsSnapshot.docs.map(doc => ({
-                  ...doc.data(),
-                  id: doc.id,
-              }));
-              setCartItems(cartItemsArray);
-          } else {
-              setCartItems([]); // Clear the cart items if no cart is found
-          }
-      } catch (err) {
-          console.error("Error fetching cart items:", err);
-      }
-  };
-  
+        try {
+            const q = query(collection(firestore, 'carts'), where("userId", "==", localStorage.getItem('userId')));
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                const currdoc = querySnapshot.docs[0];
+                const itemsCollection = collection(firestore, 'carts', currdoc.id, "items");
+                const itemsSnapshot = await getDocs(itemsCollection);
+                const cartItemsArray = itemsSnapshot.docs.map(doc => ({
+                    ...doc.data(),
+                    id: doc.id,
+                }));
+                setCartItems(cartItemsArray);
+            } else {
+                setCartItems([]); // Clear the cart items if no cart is found
+            }
+        } catch (err) {
+            console.error("Error fetching cart items:", err);
+        }
+    };
 
     const updateCart = (index, quantity) => {
         setCartItems(prevCartItems => {
@@ -55,6 +82,127 @@ const Cart = () => {
         setCouponCode(e.target.value);
     };
 
+    const handleCheckout = async () => {
+        console.log("handleCheckout function called");
+    
+        try {
+            // Define currentUrl here
+            const currentUrl = window.location.href;
+    
+            // Fetch user details using userId
+            const userDoc = await getDoc(doc(firestore, 'users', userId));
+            if (!userDoc.exists()) {
+                console.error('User not found');
+                return;
+            }
+    
+            const userData = userDoc.data();
+            const { firstName, lastName, mobile, email } = userData;
+            
+            // Ensure all fields in the order items are defined
+            const orderListItems = cartItems.map(item => ({
+                id: item.id || '',
+                title: item.productTitle || '',
+                quantity: item.quantity || 0,
+                pricePerPiece: item.pricePerPiece || 0,
+                discountPrice: item.discountPrice || 0
+            }));
+    
+            const orderDate = Timestamp.now();
+            const couponStatus = isCouponValid ? 'Valid' : 'Invalid';
+    
+            const orderDetails = {
+                userId: userId,
+                orderDate: orderDate,
+                orderListItems: orderListItems,
+                couponStatus: couponStatus,
+                cartTotal: cartTotal,
+                savings: savings
+            };
+    
+            if (isCouponValid) {
+                // Save order details directly without payment, generating a new document with a unique ID
+                await addDoc(collection(firestore, 'orderDetails'), {
+                    ...orderDetails,
+                    paymentStatus: 'Credit Sale'
+                });
+                const cartQuery = query(collection(firestore, "carts"), where("userId", "==", userId));
+                const cartSnapshot = await getDocs(cartQuery);
+                clearCart();
+                alert('Your Order Successfully Placed');
+            } else {
+                const response = await fetch('https://smartgatewayuat.hdfcbank.com/session', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Basic E0B7995B4C0453C9463B7B18D41163',
+                        'x-version': '2023-06-30',
+                        'x-merchantid': 'SG784',
+                        'customerId': '0606',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        "order_id": orderListItems.id,
+                        "amount": cartTotal,
+                        "customer_id": userId,
+                        "customer_email": email,
+                        "customer_phone": mobile,
+                        "payment_page_client_id": "hdfcmaster",
+                        "action": "paymentPage",
+                        "return_url": currentUrl,
+                        "description": "Complete your payment",
+                        "first_name": firstName,
+                        "last_name": lastName
+                    })
+                });
+    
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+    
+                const responseData = await response.json();
+                // Handle the response data as needed
+            }
+    
+            // Clear the cart by deleting the items
+            // Update the state to clear the cart in the UI
+            setCartItems([]);
+            setCartTotal(0);
+            setSavings(0);
+    
+            // Optionally, re-fetch cart items to ensure they are cleared
+            getCartItems();
+        } catch (err) {
+            console.error('Error creating order:', err);
+        }
+    };
+    
+    const clearCart = async () => {
+        const cartQuery = query(collection(firestore, "carts"), where("userId", "==", userId));
+        const cartSnapshot = await getDocs(cartQuery);
+
+        if (!cartSnapshot.empty) {
+            const currdoc = cartSnapshot.docs[0];
+            const itemsCollection = collection(firestore, 'carts', currdoc.id, "items");
+            const itemsSnapshot = await getDocs(itemsCollection);
+            const deletePromises = itemsSnapshot.docs.map((itemDoc) =>
+                deleteDoc(doc(firestore, 'carts', currdoc.id, "items", itemDoc.id))
+            );
+            await Promise.all(deletePromises);
+
+            console.log("Cart items successfully cleared.");
+        } else {
+            console.log("No cart found to clear.");
+        }
+
+        // Update the state to clear the cart in the UI
+        setCartItems([]);
+        setCartTotal(0);
+        setSavings(0);
+
+        // Optionally, re-fetch cart items to ensure they are cleared
+        getCartItems();
+    };
+    
     const validateCoupon = async () => {
         try {
             const couponRef = doc(firestore, 'coupons', couponCode);
@@ -64,7 +212,7 @@ const Cart = () => {
                 const currentDate = new Date();
                 const startDate = new Date(couponData.startDate);
                 const endDate = new Date(couponData.endDate);
-                
+
                 if (currentDate >= startDate && currentDate <= endDate) {
                     setIsCouponValid(true);
                     console.log('Coupon is valid');
@@ -82,71 +230,26 @@ const Cart = () => {
         }
     };
 
-    const handleCheckout = async () => {
-      console.log("handleCheckout function called");
-      try {
-          // Ensure all fields in the order items are defined
-          const orderListItems = cartItems.map(item => ({
-              id: item.id || '',
-              title: item.title || '',
-              quantity: item.quantity || 0,
-              pricePerPiece: item.pricePerPiece || 0,
-              discountPrice: item.discountPrice || 0
-          }));
-  
-          // Save order details in the database
-          const orderRef = doc(collection(firestore, 'orderDetails'), userId);
-          const orderDate = Timestamp.now();
-          const couponStatus = isCouponValid ? 'Valid' : 'Invalid';
-  
-          console.log("Order details being saved:", {
-              userId: userId,
-              orderDate: orderDate,
-              orderListItems: orderListItems,
-              couponStatus: couponStatus
-          });
-  
-          await setDoc(orderRef, {
-              userId: userId,
-              orderDate: orderDate,
-              orderListItems: orderListItems,
-              couponStatus: couponStatus
-          });
-  
-          // Clear the cart by deleting the items
-          const cartQuery = query(collection(firestore, "carts"), where("userId", "==", userId));
-          const cartSnapshot = await getDocs(cartQuery);
-          
-          if (!cartSnapshot.empty) {
-              const currdoc = cartSnapshot.docs[0];
-              const itemsCollection = collection(firestore, 'carts', currdoc.id, "items");
-              const itemsSnapshot = await getDocs(itemsCollection);
-              const deletePromises = itemsSnapshot.docs.map((itemDoc) =>
-                  deleteDoc(doc(firestore, 'carts', currdoc.id, "items", itemDoc.id))
-              );
-              await Promise.all(deletePromises);
-              
-              console.log("Cart items successfully cleared.");
-          } else {
-              console.log("No cart found to clear.");
-          }
-  
-          // Update the state to clear the cart in the UI
-          setCartItems([]);
-          setCartTotal(0);
-  
-          // Optionally, re-fetch cart items to ensure they are cleared
-          getCartItems();
-      } catch (err) {
-          console.error('Error creating order:', err);
-      }
-  };
-  useEffect(() => {
-    getCartItems();
-}, []);
 
   
-  
+    useEffect(() => {
+        const total = cartItems.reduce((acc, currItem) => {
+            if (currItem.pricePerPiece && currItem.quantity) {
+                return acc + (currItem.pricePerPiece * currItem.quantity);
+            }
+            return acc;
+        }, 0);
+        setCartTotal(total);
+
+        const totalSavings = cartItems.reduce((acc, currItem) => {
+            const discountPrice = currItem.discountPrice || 0;
+            if (currItem.pricePerPiece && currItem.quantity) {
+                return acc + ((currItem.pricePerPiece - discountPrice) * currItem.quantity);
+            }
+            return acc;
+        }, 0);
+        setSavings(totalSavings);
+    }, [cartItems]);
 
     return (
         <div className="min-h-screen flex flex-col justify-between mt-32 md:mt-28">

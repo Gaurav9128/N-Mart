@@ -4,8 +4,9 @@ import AddCategory from '../components/AddCategory';
 import UpdateProduct from './Update';
 import ExportData from '../components/ExportData';
 import ImportData from '../components/ImportData';
-import UserCouponManager from '../components/UserCouponManager'; // Import the new component
-import { PlusIcon, PlusCircleIcon, ArrowPathIcon, ArrowDownTrayIcon, ArrowUpTrayIcon, UserIcon } from '@heroicons/react/20/solid';
+import UserCouponManager from '../components/UserCouponManager';
+import OrderDetails from '../components/OrderDetails';
+import { PlusIcon, PlusCircleIcon, ArrowPathIcon, ArrowDownTrayIcon, ArrowUpTrayIcon, UserIcon, ClipboardDocumentListIcon } from '@heroicons/react/20/solid';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { firestore } from '../firebase/FirebaseConfig';
@@ -53,6 +54,8 @@ const Admin = () => {
         return <ImportData />;
       case 'userCouponManager':
         return <UserCouponManager />;
+      case 'orderDetails':
+        return <OrderDetails />;
       default:
         return null;
     }
@@ -61,6 +64,7 @@ const Admin = () => {
   return (
     <div className="min-h-screen p-6 bg-gray-100 flex items-center justify-center">
       {loading && <Loader />}
+      {isAdmin ?
       <div className="container max-w-screen-lg mx-auto">
         <div>
           <h2 className="font-semibold text-xl text-gray-600">Admin Dashboard</h2>
@@ -74,7 +78,8 @@ const Admin = () => {
                 <button className={`${activeComponent === 'update' ? "bg-gray-400" : ""} flex p-2`} onClick={() => setActiveComponent('update')}><ArrowPathIcon className='w-6 h-6' /><span className='pl-1'>Update Product </span></button>
                 <button className={`${activeComponent === 'export' ? "bg-gray-400" : ""} flex p-2`} onClick={() => setActiveComponent('export')}><ArrowDownTrayIcon className='w-6 h-6' /><span className='pl-1'>Export Data </span></button>
                 <button className={`${activeComponent === 'import' ? "bg-gray-400" : ""} flex p-2`} onClick={() => setActiveComponent('import')}><ArrowUpTrayIcon className='w-6 h-6' /><span className='pl-1'>Import Data </span></button>
-                <button className={`${activeComponent === 'userCouponManager' ? "bg-gray-400" : ""} flex p-2`} onClick={() => setActiveComponent('userCouponManager')}><UserIcon className='w-6 h-6' /><span className='pl-1'>Manage Coupons </span></button> {/* New Button */}
+                <button className={`${activeComponent === 'userCouponManager' ? "bg-gray-400" : ""} flex p-2`} onClick={() => setActiveComponent('userCouponManager')}><UserIcon className='w-6 h-6' /><span className='pl-1'>Manage Coupons </span></button>
+                <button className={`${activeComponent === 'orderDetails' ? "bg-gray-400" : ""} flex p-2`} onClick={() => setActiveComponent('orderDetails')}><ClipboardDocumentListIcon className='w-6 h-6' /><span className='pl-1'>Order Details </span></button>
               </div>
               <div className="lg:col-span-3">
                 {renderComponent()}
@@ -83,6 +88,9 @@ const Admin = () => {
           </div>
         </div>
       </div>
+        :
+        <h1>Unauthorized Access</h1>
+    } 
     </div>
   );
 };

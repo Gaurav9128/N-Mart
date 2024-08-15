@@ -16,13 +16,16 @@ const UpdateProduct = () => {
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState([]);
   const [brand, setBrand] = useState('');
+  const [discount1, setDiscount1] = useState('');
+  const [discount2, setDiscount2] = useState('');
   const [voucher, setVoucher] = useState('');
   const [visible, setVisible] = useState(true);
   const [image, setImage] = useState([]);
   const [imagePreview, setImagePreview] = useState([]);
   const [loading, setLoading] = useState(false);
   const [variations, setVariations] = useState([]);
-
+  const [Price, setPrice] = useState([]);
+  const [mrp, setMrp] = useState([]);
   useEffect(() => {
     getCategories();
   }, []);
@@ -53,7 +56,7 @@ const UpdateProduct = () => {
       const productData = doc.data();
       if (productData.category === category) {
         const product = { id: doc.id, ...productData };
-
+        console.log("product data is", product)
         // Retrieve variations
         const variationsCollection = collection(firestore, "products", doc.id, "variations");
         const variationsSnapshot = await getDocs(variationsCollection);
@@ -61,6 +64,7 @@ const UpdateProduct = () => {
           id: variationDoc.id,
           ...variationDoc.data()
         }));
+        // console.log("variations ",variations)
         product.variations = variations;
 
         // Retrieve prices
@@ -87,6 +91,8 @@ const UpdateProduct = () => {
     setTags(selectedProduct.tags || []);
     setBrand(selectedProduct.brand);
     setVoucher(selectedProduct.voucher);
+    setDiscount1(selectedProduct.discount1);
+    setDiscount2(selectedProduct.discount2);
     setVisible(selectedProduct.visible);
     setImagePreview(selectedProduct.image || []);
     setVariations(selectedProduct.variations || []);
@@ -95,7 +101,7 @@ const UpdateProduct = () => {
   const handleUpdateProduct = async (e) => {
     e.preventDefault();
     setLoading(true);
-  
+
     try {
       let imgUrls = [...imagePreview];
       for (let i = 0; i < image.length; i++) {
@@ -104,7 +110,7 @@ const UpdateProduct = () => {
         const url = await getDownloadURL(imgRef);
         imgUrls.push(url);
       }
-  
+
       const updatedProduct = {
         title,
         description,
@@ -115,13 +121,13 @@ const UpdateProduct = () => {
         brand,
         visible,
       };
-  
+
       await updateDoc(doc(firestore, "products", selectedProduct.id), updatedProduct);
-  
+
       // Fetch existing variations and prices
       const existingVariationsSnapshot = await getDocs(collection(firestore, "products", selectedProduct.id, "variations"));
       const existingVariations = existingVariationsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  
+      console.lof("existingVariations  ", existingVariations)
       // Handle variations
       for (const variation of variations) {
         const existingVariation = existingVariations.find(v => v.name === variation.name);
@@ -131,11 +137,11 @@ const UpdateProduct = () => {
             name: variation.name,
             quantity: variation.quantity,
           });
-  
+
           // Fetch existing prices
           const existingPricesSnapshot = await getDocs(collection(firestore, "products", selectedProduct.id, "variations", existingVariation.id, "prices"));
           const existingPrices = existingPricesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  
+
           // Update prices
           for (const price of variation.prices) {
             const existingPrice = existingPrices.find(p => p.id === price.id);
@@ -153,7 +159,7 @@ const UpdateProduct = () => {
               });
             }
           }
-  
+
           // Handle deleted prices
           const pricesToDelete = existingPrices.filter(existingPrice => !variation.prices.some(price => price.id === existingPrice.id));
           for (const price of pricesToDelete) {
@@ -174,13 +180,13 @@ const UpdateProduct = () => {
           }
         }
       }
-  
+
       // Handle deleted variations
       const variationsToDelete = existingVariations.filter(existingVariation => !variations.some(variation => variation.name === existingVariation.name));
       for (const variation of variationsToDelete) {
         await deleteDoc(doc(firestore, "products", selectedProduct.id, "variations", variation.id));
       }
-  
+
       setLoading(false);
       alert("Product updated successfully");
     } catch (error) {
@@ -213,8 +219,12 @@ const UpdateProduct = () => {
   };
 
   const handleDeleteImage = (url) => {
-    const updatedImages = imagePreview.filter((img) => img !== url);
-    setImagePreview(updatedImages);
+    const updatedPreviews = imagePreview.filter((preview) => preview !== url);
+    setImagePreview(updatedPreviews);
+
+    // Update the images array as well to maintain consistency
+    const updatedImages = image.filter((_, index) => URL.createObjectURL(image[index]) !== url);
+    setImage(updatedImages);
   };
 
   const handleDeleteProduct = async () => {
@@ -235,6 +245,57 @@ const UpdateProduct = () => {
       }
     }
   };
+
+  const handleImageChange = (e) => {
+    const newImages = Array.from(e.target.files);
+    setImage((prevImages) => [...prevImages, ...newImages]);
+
+    const newPreviews = newImages.map((file) => URL.createObjectURL(file));
+    setImagePreview((prevPreviews) => [...prevPreviews, ...newPreviews]);
+  };
+
+  const handlemrpdis = (index, e) => {
+    console.log("index  and  e " + e)
+    handleVariationChange(index, 'mrp', e)
+    if (!mrp) {
+        return;
+    }
+    console.log(e);
+    let totalmrp = parseFloat(e) || 0; // Ensure totalmrp is a number
+    if (discount1) {
+        let disamount = totalmrp * discount1 / 100;
+        totalmrp -= disamount;
+    }
+    if (discount2) {
+        let disamount = totalmrp * discount2 / 100;
+        totalmrp -= disamount;
+    }
+
+    const newPrice = [...Price];
+    newPrice[index] = totalmrp.toFixed(2);
+    setPrice(newPrice);
+  };
+  useEffect(() => {
+    if (Array.isArray(mrp)) {
+        setPrice(prevPrice => {
+            return mrp.map((mrpValue, index) => {
+                let totalmrp = parseFloat(mrpValue) || 0; // Ensure totalmrp is a number
+                if (discount1) {
+                    let disamount = totalmrp * discount1 / 100;
+                    totalmrp -= disamount;
+                }
+                if (discount2) {
+                    let disamount = totalmrp * discount2 / 100;
+                    totalmrp -= disamount;
+                }
+                return totalmrp.toFixed(2);
+            });
+        });
+    } else {
+        console.error("Expected mrp to be an array but got:", mrp);
+        // Optionally, handle the case where mrp is not an array
+    }
+}, [discount1, discount2]);
 
   return (
     <div className="grid gap-4 gap-y-2 text-sm grid-cols-1 md:grid-cols-5">
@@ -335,10 +396,19 @@ const UpdateProduct = () => {
             <label htmlFor="visible">Visible</label>
             <input type="checkbox" name="visible" id="visible" checked={visible} onChange={(e) => setVisible(e.target.checked)} className="h-10 border mt-1 rounded px-4 bg-gray-50" />
           </div>
+
           <div className="md:col-span-5">
             <label htmlFor="image">Image</label>
-            <input type="file" name="image" id="image" multiple onChange={(e) => setImage(Array.from(e.target.files))} className="h-10 border mt-1 rounded px-4 w-full bg-gray-50" />
+            <input
+              type="file"
+              name="image"
+              id="image"
+              multiple
+              onChange={handleImageChange}
+              className="h-10 border mt-1 rounded px-4 w-full bg-gray-50"
+            />
           </div>
+
           <div className="md:col-span-5">
             <label>Image Preview</label>
             <div className="flex flex-wrap gap-2 mt-2">
@@ -352,7 +422,14 @@ const UpdateProduct = () => {
               ))}
             </div>
           </div>
-
+          <div className="md:col-span-5">
+            <label htmlFor="description">Discount 1</label>
+            <input name="description" type='number' id="description" value={discount1} onChange={(e) => setDiscount1(e.target.value)} className="border mt-1 rounded px-4 w-full bg-gray-50" />
+          </div>
+          <div className="md:col-span-5">
+            <label htmlFor="description">Discount 2</label>
+            <input name="description" type='number' id="description" value={discount2} onChange={(e) => setDiscount2(e.target.value)} className=" border mt-1 rounded px-4 w-full bg-gray-50" />
+          </div>
           {variations.map((variation, variationIndex) => (
             <div key={variationIndex} className="md:col-span-5 border-t pt-4 mt-4">
               <div className="md:col-span-5 flex justify-between items-center">
@@ -369,12 +446,30 @@ const UpdateProduct = () => {
                 <label htmlFor={`variation-quantity-${variationIndex}`}>Quantity</label>
                 <input type="number" name={`variation-quantity-${variationIndex}`} id={`variation-quantity-${variationIndex}`} value={variation.quantity} onChange={(e) => handleVariationChange(variationIndex, 'quantity', e.target.value)} className="h-10 border mt-1 rounded px-4 w-full bg-gray-50" />
               </div>
+
+              <div className="md:col-span-5 mt-2">
+                <label htmlFor={`variation-mrp-${variationIndex}`}>Mrp</label>
+                <input
+                  type="number"
+                  name={`variation-mrp-${variationIndex}`}
+                  id={`variation-mrp-${variationIndex}`}
+                  value={variation.mrp}
+                  onChange={(e) => {
+                    const newMrp = [...mrp];
+                    newMrp[variationIndex] = e.target.value;
+                    handlemrpdis(variationIndex, e.target.value);
+                    setMrp(newMrp); // Ensure this correctly updates the state
+                  }}
+                  className="h-10 border mt-1 rounded px-4 w-full bg-gray-50"
+                />
+
+              </div>
               {variation.prices.map((price, priceIndex) => (
                 <div key={priceIndex} className="md:col-span-5 mt-2">
                   <div className="flex space-x-2">
                     <div className="flex-1">
                       <label htmlFor={`price-${variationIndex}-${priceIndex}`}>Price</label>
-                      <input type="number" name={`price-${variationIndex}-${priceIndex}`} id={`price-${variationIndex}-${priceIndex}`} value={price.price} onChange={(e) => handlePriceChange(variationIndex, priceIndex, 'price', e.target.value)} className="h-10 border mt-1 rounded px-4 w-full bg-gray-50" />
+                      <input type="number" name={`price-${variationIndex}-${priceIndex}`} id={`price-${variationIndex}-${priceIndex}`} value={Price} onChange={(e) => { handlePriceChange(variationIndex, priceIndex, 'price', e.target.value) }} className="h-10 border mt-1 rounded px-4 w-full bg-gray-50" />
                     </div>
                     <div className="flex-1">
                       <label htmlFor={`minQuantity-${variationIndex}-${priceIndex}`}>Min Quantity</label>

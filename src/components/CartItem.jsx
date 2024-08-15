@@ -7,7 +7,7 @@ import { useRecoilState } from 'recoil';
 import { cartTotalAtom } from '../store/atoms/totalCartQuantity';
 
 const CartItem = (props) => {
-    console.log(" maha prop ",props)
+    //console.log(" maha prop ",props)
     const [editable, setEditable] = useState(false);
     const [quantity, setQuantity] = useState(0);
     const [minQuantity, setMinQuantity] = useState(null);
