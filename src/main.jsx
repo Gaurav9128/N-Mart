@@ -17,6 +17,8 @@ import WhatsappChat from './components/WhatsappChat.jsx';
 import  AuthProvider from './hooks/useAuth.jsx';
 import VerificationPending from './pages/VerificationPending.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
+import PrivacyPolicy from './pages/PrivacyPolicy.jsx';
+import TermsConditions from './pages/TermsCondition.jsx';
 
 
 
@@ -51,6 +53,14 @@ const router = createBrowserRouter([
   {
     path : "/admin",
     element : <Admin />
+  },
+  {
+    path : "/privacy-policy" ,
+    element : <PrivacyPolicy />
+  },
+  {
+    path : "/terms-condition" ,
+    element : <TermsConditions />
   }
 ]);
 
