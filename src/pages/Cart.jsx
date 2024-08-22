@@ -22,32 +22,74 @@ const Cart = () => {
     useEffect(() => {
         getCartItems();
     }, []);
-    // useEffect(() => {
-    //    const fetch  = async ()=>{
-    //     const queryParams = new URLSearchParams(window.location.search);
-    //     const status = queryParams.get('status');
+    useEffect(() => {
+        const fetchOrderStatus = async () => {
+            const queryParams = new URLSearchParams(window.location.search);
+            const status = queryParams.get('status');
+            const transactionID = queryParams.get('txnId');
+            
+            if (status && transactionID) {
+                // Check if the order for this transaction ID has already been processed
+                const isOrderProcessed = localStorage.getItem(`orderProcessed_${transactionID}`);
+                
+                if (isOrderProcessed) {
+                    console.log("Order for this transaction ID has already been processed.");
+                    return;
+                }
+                
+                // Fetch existing order with the same transaction ID
+                const existingOrderQuery = query(
+                    collection(firestore, 'orderDetails'),
+                    where('transactionId', '==', transactionID)
+                );
+                const existingOrderSnapshot = await getDocs(existingOrderQuery);
+                
+                if (status === 'CHARGED') {
+                    if (existingOrderSnapshot.empty) {
+                        const orderData = localStorage.getItem('orderDetails');
+                        
+                        if (orderData) {
+                            const orderDetails = JSON.parse(orderData);
+                            const orderDate = Timestamp.now();
         
-    //     if (status) {
-    //         if (status === 'Success') {
-    //             alert('Success');
-    //         } else if (status === 'Aborted') {
-    //             alert('Operation Aborted');
-    //         } else {
-    //             alert(`Status: ${status}`);
-    //             await addDoc(collection(firestore, 'orderDetails'), {
-    //                 ...orderDetails,
-    //                 paymentStatus: 'Online Paymnet'
-    //             });
-    //             const cartQuery = query(collection(firestore, "carts"), where("userId", "==", userId));
-    //             const cartSnapshot = await getDocs(cartQuery);
+                            // Insert the order details into Firestore
+                            await addDoc(collection(firestore, 'orderDetails'), {
+                                ...orderDetails,
+                                paymentStatus: 'Online Payment',
+                                transactionId: transactionID,
+                                orderDate: orderDate
+                            });
         
-    //             clearCart()
-    //             alert('Your Order Successfully Placed');
-    //         }
-    //     }
-    //    }
-    //    fetch();
-    // }, []);
+                            // Set a flag to indicate the order has been processed
+                            localStorage.setItem(`orderProcessed_${transactionID}`, 'true');
+                            
+                            // Clear localStorage and cart
+                            localStorage.removeItem('orderDetails');
+                            await clearCart();
+                            alert('Your Order was Successfully Placed');
+                            
+                        } else {
+                            console.error("Order details are missing from localStorage.");
+                        }
+                    } else {
+                        console.log("Order with this transaction ID already exists.");
+                    }
+                } else if (status === 'AUTHENTICATION_FAILED') {
+                    alert('Operation AUTHENTICATION_FAILED');
+                } else if (status === 'AUTHORIZATION_FAILED') {
+                    alert('Operation AUTHORIZATION_FAILED');
+                }
+            }
+        
+            // Redirect to the cart page
+        };
+        
+    
+        fetchOrderStatus();
+    }, []); // Empty dependencies array to ensure it runs only once
+    
+     // Empty dependencies array to ensure it runs only once
+    
 
     const getCartItems = async () => {
         try {
@@ -81,7 +123,9 @@ const Cart = () => {
     const handleCouponCodeChange = (e) => {
         setCouponCode(e.target.value);
     };
-
+    function generateRandomId() {
+        return Math.floor(10000000 + Math.random() * 90000000).toString();
+      }
     const handleCheckout = async () => {
         console.log("handleCheckout function called");
     
@@ -108,59 +152,64 @@ const Cart = () => {
                 discountPrice: item.discountPrice || 0
             }));
     
-            const orderDate = Timestamp.now();
+            
             const couponStatus = isCouponValid ? 'Valid' : 'Invalid';
     
             const orderDetails = {
                 userId: userId,
-                orderDate: orderDate,
                 orderListItems: orderListItems,
                 couponStatus: couponStatus,
                 cartTotal: cartTotal,
                 savings: savings
             };
-    
+           // console.log("after ",orderDetails)
+            localStorage.setItem("orderDetails",JSON.stringify(orderDetails))
+            const orderDetails1 = localStorage.getItem('orderDetails')
+           // console.log("order function  ",JSON.parse(orderDetails1));
+            
+            
             if (isCouponValid) {
                 // Save order details directly without payment, generating a new document with a unique ID
+                const orderDate = Timestamp.now();
                 await addDoc(collection(firestore, 'orderDetails'), {
                     ...orderDetails,
-                    paymentStatus: 'Credit Sale'
+                    paymentStatus: 'Credit Sale',
+                    orderDate: orderDate
                 });
                 const cartQuery = query(collection(firestore, "carts"), where("userId", "==", userId));
                 const cartSnapshot = await getDocs(cartQuery);
                 clearCart();
                 alert('Your Order Successfully Placed');
             } else {
-                const response = await fetch('https://smartgatewayuat.hdfcbank.com/session', {
+                const randomId = generateRandomId();
+                fetch('https://nmart-node.onrender.com/initiateJuspayPayment', {
                     method: 'POST',
                     headers: {
-                        'Authorization': 'Basic E0B7995B4C0453C9463B7B18D41163',
-                        'x-version': '2023-06-30',
-                        'x-merchantid': 'SG784',
-                        'customerId': '0606',
-                        'Content-Type': 'application/json'
+                      'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        "order_id": orderListItems.id,
-                        "amount": cartTotal,
-                        "customer_id": userId,
-                        "customer_email": email,
-                        "customer_phone": mobile,
-                        "payment_page_client_id": "hdfcmaster",
-                        "action": "paymentPage",
-                        "return_url": currentUrl,
-                        "description": "Complete your payment",
-                        "first_name": firstName,
-                        "last_name": lastName
+                      orderId: randomId,
+                      amount: cartTotal,
+                    }),
+                  })
+                    .then((response) => {
+                      if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                      }
+                      return response.json();
                     })
-                });
-    
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-    
-                const responseData = await response.json();
-                // Handle the response data as needed
+                    .then((data) => {
+                      console.log('Response data:', data);  // Handle the JSON data
+                      if(data.status=='NEW'){
+                        let orderid  = data.id;
+                        let linkUrl = data.payment_links.web;
+                        console.log("linkUrl ",linkUrl)
+                        window.location.href = linkUrl;
+                      }
+                    })
+                    .catch((error) => {
+                      console.error('There was a problem with the fetch operation:', error);
+                    });
             }
     
             // Clear the cart by deleting the items

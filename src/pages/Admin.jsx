@@ -88,9 +88,9 @@ const Admin = () => {
           </div>
         </div>
       </div>
-        :
+         :
         <h1>Unauthorized Access</h1>
-    } 
+    }  
     </div>
   );
 };

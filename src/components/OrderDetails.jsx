@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { firestore } from '../firebase/FirebaseConfig';
 import * as XLSX from 'xlsx';
 
@@ -34,6 +34,7 @@ const OrderDetails = () => {
       const querySnapshot = await getDocs(collection(firestore, 'orderDetails'));
       const ordersArray = await Promise.all(querySnapshot.docs.map(async (doc) => {
         const orderData = doc.data();
+        if (orderData.status === 'delivered') return null; // Skip delivered orders
         const userDetails = await fetchUserDetails(orderData.userId);
         return {
           ...orderData,
@@ -42,9 +43,21 @@ const OrderDetails = () => {
           userAddress: userDetails ? userDetails.address : 'No address available',
         };
       }));
-      setOrders(ordersArray);
+      setOrders(ordersArray.filter(order => order !== null)); // Remove null values
     } catch (err) {
       console.error("Error fetching order details:", err);
+    }
+  };
+
+  const handleDeliveredChange = async (orderId) => {
+    try {
+      const orderRef = doc(firestore, 'orderDetails', orderId);
+      await updateDoc(orderRef, {
+        status: 'delivered',
+      });
+      setOrders(prevOrders => prevOrders.filter(order => order.id !== orderId)); // Remove delivered order from state
+    } catch (err) {
+      console.error("Error updating order status:", err);
     }
   };
 
@@ -64,7 +77,6 @@ const OrderDetails = () => {
       CouponStatus: order.couponStatus,
     })));
   
-    // Apply cell styles (optional) for better readability
     ws['!cols'] = [
       { wpx: 120 }, // Set column widths for better display
       { wpx: 150 },
@@ -78,7 +90,6 @@ const OrderDetails = () => {
     XLSX.utils.book_append_sheet(wb, ws, "Orders");
     XLSX.writeFile(wb, "OrderDetails.xlsx");
   };
-  
 
   return (
     <div className="p-4">
@@ -101,6 +112,8 @@ const OrderDetails = () => {
               <th className="py-2 px-4 border-b-2 border-gray-200 text-left text-sm font-semibold text-gray-600">Items</th>
               <th className="py-2 px-4 border-b border-gray-200 text-sm font-semibold text-gray-600">Cart Total</th>
               <th className="py-2 px-4 border-b border-gray-200 text-sm font-semibold text-gray-600">Coupon Status</th>
+              <th className="py-2 px-4 border-b border-gray-200 text-sm font-semibold text-gray-600">Transaction ID</th>
+              <th className="py-2 px-4 border-b border-gray-200 text-sm font-semibold text-gray-600">Delivered</th>
             </tr>
           </thead>
           <tbody>
@@ -132,11 +145,19 @@ const OrderDetails = () => {
                   </td>
                   <td className="py-2 px-4 border-b border-gray-200 text-sm">{order.cartTotal ? order.cartTotal.toFixed(2) : 'N/A'}</td>
                   <td className="py-2 px-4 border-b border-gray-200 text-sm">{order.couponStatus}</td>
+                  <td className="py-2 px-4 border-b border-gray-200 text-sm">{order.transactionId || 'N/A'}</td>
+                  <td className="py-2 px-4 border-b border-gray-200 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={order.status === 'delivered'}
+                      onChange={() => handleDeliveredChange(order.id)}
+                    />
+                  </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="6" className="py-4 px-4 text-center text-sm text-gray-500">No orders found</td>
+                <td colSpan="8" className="py-4 px-4 text-center text-sm text-gray-500">No orders found</td>
               </tr>
             )}
           </tbody>
