@@ -5,11 +5,25 @@ import * as XLSX from 'xlsx';
 
 const OrderDetails = () => {
   const [orders, setOrders] = useState([]);
+  const [filteredOrders, setFilteredOrders] = useState([]); // For filtering orders
   const [users, setUsers] = useState({});
+  const [filterDate, setFilterDate] = useState(''); // State for date filter
 
   useEffect(() => {
     fetchOrderDetails();
   }, []);
+
+  useEffect(() => {
+    // Apply date filter whenever filterDate or orders change
+    if (filterDate) {
+      const filtered = orders.filter(order =>
+        order.orderDate.toDate().toISOString().split('T')[0] === filterDate
+      );
+      setFilteredOrders(filtered);
+    } else {
+      setFilteredOrders(orders); // No filter, show all orders
+    }
+  }, [filterDate, orders]);
 
   const fetchUserDetails = async (userId) => {
     if (users[userId]) return users[userId]; // Return cached user details if available
@@ -32,13 +46,14 @@ const OrderDetails = () => {
   const fetchOrderDetails = async () => {
     try {
       const querySnapshot = await getDocs(collection(firestore, 'orderDetails'));
-      const ordersArray = await Promise.all(querySnapshot.docs.map(async (doc) => {
+      const ordersArray = await Promise.all(querySnapshot.docs.map(async (doc, index) => {
         const orderData = doc.data();
         if (orderData.status === 'delivered') return null; // Skip delivered orders
         const userDetails = await fetchUserDetails(orderData.userId);
         return {
           ...orderData,
           id: doc.id,
+          srNo: index + 1, // Add serial number
           userName: userDetails ? userDetails.fullName : 'Unknown',
           userAddress: userDetails ? userDetails.address : 'No address available',
         };
@@ -68,7 +83,8 @@ const OrderDetails = () => {
       ).join('\n\n'); // Separate each item with a blank line
     };
   
-    const ws = XLSX.utils.json_to_sheet(orders.map(order => ({
+    const ws = XLSX.utils.json_to_sheet(filteredOrders.map(order => ({
+      SrNo: order.srNo,
       UserName: order.userName,
       UserAddress: order.userAddress,
       OrderDate: order.orderDate.toDate().toLocaleString(),
@@ -78,12 +94,13 @@ const OrderDetails = () => {
     })));
   
     ws['!cols'] = [
-      { wpx: 120 }, // Set column widths for better display
-      { wpx: 150 },
-      { wpx: 150 },
-      { wpx: 200 }, // Adjust width for items
-      { wpx: 100 },
-      { wpx: 120 }
+      { wpx: 50 },  // SrNo width
+      { wpx: 120 }, // UserName width
+      { wpx: 150 }, // UserAddress width
+      { wpx: 150 }, // OrderDate width
+      { wpx: 200 }, // Items width
+      { wpx: 100 }, // CartTotal width
+      { wpx: 120 }  // CouponStatus width
     ];
   
     const wb = XLSX.utils.book_new();
@@ -93,7 +110,13 @@ const OrderDetails = () => {
 
   return (
     <div className="p-4">
-      <div className="mb-4">
+      <div className="mb-4 flex items-center">
+        <input
+          type="date"
+          value={filterDate}
+          onChange={(e) => setFilterDate(e.target.value)}
+          className="px-4 py-2 border rounded mr-4"
+        />
         <button
           onClick={downloadExcel}
           className="px-4 py-2 bg-blue-500 text-white rounded shadow hover:bg-blue-600"
@@ -106,6 +129,7 @@ const OrderDetails = () => {
         <table className="min-w-full bg-white">
           <thead className="bg-gray-50">
             <tr>
+              <th className="py-2 px-4 border-b-2 border-gray-200 text-left text-sm font-semibold text-gray-600">Sr No.</th>
               <th className="py-2 px-4 border-b-2 border-gray-200 text-left text-sm font-semibold text-gray-600">User Name</th>
               <th className="py-2 px-4 border-b-2 border-gray-200 text-left text-sm font-semibold text-gray-600">User Address</th>
               <th className="py-2 px-4 border-b-2 border-gray-200 text-left text-sm font-semibold text-gray-600">Order Date</th>
@@ -117,9 +141,10 @@ const OrderDetails = () => {
             </tr>
           </thead>
           <tbody>
-            {orders.length > 0 ? (
-              orders.map(order => (
+            {filteredOrders.length > 0 ? (
+              filteredOrders.map((order, index) => (
                 <tr key={order.id} className="hover:bg-gray-100">
+                  <td className="py-2 px-4 border-b border-gray-200 text-sm">{index + 1}</td>
                   <td className="py-2 px-4 border-b border-gray-200 text-sm">{order.userName}</td>
                   <td className="py-2 px-4 border-b border-gray-200 text-sm">{order.userAddress}</td>
                   <td className="py-2 px-4 border-b border-gray-200 text-sm">{order.orderDate.toDate().toLocaleString()}</td>
@@ -133,8 +158,8 @@ const OrderDetails = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {order.orderListItems.map((item, index) => (
-                          <tr key={index} className="hover:bg-gray-100">
+                        {order.orderListItems.map((item, idx) => (
+                          <tr key={idx} className="hover:bg-gray-100">
                             <td className="py-1 px-2 border-b border-gray-200 text-xs">{item.title}</td>
                             <td className="py-1 px-2 border-b border-gray-200 text-xs">{item.quantity} pcs</td>
                             <td className="py-1 px-2 border-b border-gray-200 text-xs">{item.pricePerPiece ? item.pricePerPiece.toFixed(2) : 'N/A'}</td>
@@ -157,7 +182,7 @@ const OrderDetails = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="8" className="py-4 px-4 text-center text-sm text-gray-500">No orders found</td>
+                <td colSpan="9" className="py-4 px-4 text-center text-sm text-gray-500">No orders found</td>
               </tr>
             )}
           </tbody>

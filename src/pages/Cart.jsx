@@ -29,21 +29,12 @@ const Cart = () => {
             const transactionID = queryParams.get('txnId');
             
             if (status && transactionID) {
-                // Check if the order for this transaction ID has already been processed
-                const isOrderProcessed = localStorage.getItem(`orderProcessed_${transactionID}`);
-                
-                if (isOrderProcessed) {
-                    console.log("Order for this transaction ID has already been processed.");
-                    return;
-                }
-                
                 // Fetch existing order with the same transaction ID
                 const existingOrderQuery = query(
                     collection(firestore, 'orderDetails'),
                     where('transactionId', '==', transactionID)
                 );
                 const existingOrderSnapshot = await getDocs(existingOrderQuery);
-                
                 if (status === 'CHARGED') {
                     if (existingOrderSnapshot.empty) {
                         const orderData = localStorage.getItem('orderDetails');
@@ -51,19 +42,13 @@ const Cart = () => {
                         if (orderData) {
                             const orderDetails = JSON.parse(orderData);
                             const orderDate = Timestamp.now();
-        
-                            // Insert the order details into Firestore
+    
                             await addDoc(collection(firestore, 'orderDetails'), {
                                 ...orderDetails,
                                 paymentStatus: 'Online Payment',
                                 transactionId: transactionID,
                                 orderDate: orderDate
                             });
-        
-                            // Set a flag to indicate the order has been processed
-                            localStorage.setItem(`orderProcessed_${transactionID}`, 'true');
-                            
-                            // Clear localStorage and cart
                             localStorage.removeItem('orderDetails');
                             await clearCart();
                             alert('Your Order was Successfully Placed');
@@ -80,10 +65,10 @@ const Cart = () => {
                     alert('Operation AUTHORIZATION_FAILED');
                 }
             }
-        
+    
             // Redirect to the cart page
+            
         };
-        
     
         fetchOrderStatus();
     }, []); // Empty dependencies array to ensure it runs only once
