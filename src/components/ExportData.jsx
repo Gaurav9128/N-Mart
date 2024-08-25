@@ -12,7 +12,6 @@ const ExportData = () => {
     setError(null);
 
     try {
-      // Fetch products and variations data
       const productsCollection = collection(firestore, 'products');
       const productsSnapshot = await getDocs(productsCollection);
 
@@ -22,33 +21,40 @@ const ExportData = () => {
 
       const data = [];
 
-      for (const productDoc of productsSnapshot.docs) {
+      // Fetching data concurrently
+      const productPromises = productsSnapshot.docs.map(async (productDoc) => {
         const productData = productDoc.data();
         const variationsCollection = collection(productDoc.ref, 'variations');
         const variationsSnapshot = await getDocs(variationsCollection);
 
-        for (const variationDoc of variationsSnapshot.docs) {
+        const variationPromises = variationsSnapshot.docs.map(async (variationDoc) => {
           const variationData = variationDoc.data();
           const pricesCollection = collection(variationDoc.ref, 'prices');
           const pricesSnapshot = await getDocs(pricesCollection);
-          console.log("pricesSnapshot ",pricesSnapshot)
-          for (const priceDoc of pricesSnapshot.docs) {
+
+          const pricePromises = pricesSnapshot.docs.map(async (priceDoc) => {
             const priceData = priceDoc.data();
             data.push({
               productId: productDoc.id,
               title: productData.title,
               description: productData.description,
               category: productData.category,
-              variationId: variationDoc,
+              variationId: variationDoc.id, // Corrected this line to use variationDoc.id
               quantity: variationData.quantity,
-              price: variationData.price,
+              price: priceData.price,
               minQuantity: priceData.minQuantity,
               maxQuantity: priceData.maxQuantity,
               priceId: priceDoc.id
             });
-          }
-        }
-      }
+          });
+
+          await Promise.all(pricePromises);
+        });
+
+        await Promise.all(variationPromises);
+      });
+
+      await Promise.all(productPromises);
 
       if (data.length === 0) {
         throw new Error('No data found.');
