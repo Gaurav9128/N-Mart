@@ -18,8 +18,8 @@ const FooterComponent = () => {
             <div>
               <Footer.Title title="FAQs" />
               <Footer.LinkGroup col>
-                <Footer.Link href="#">Privacy Policy</Footer.Link>
-                <Footer.Link href="#">Pricing, Delivery, Return & Refund Policy</Footer.Link>
+                <Footer.Link href="/privacy">Privacy Policy</Footer.Link>
+                <Footer.Link href="#">Terms&Conditions</Footer.Link>
               </Footer.LinkGroup>
             </div>
             <div>
