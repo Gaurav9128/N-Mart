@@ -19,7 +19,7 @@ import VerificationPending from './pages/VerificationPending.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import PrivacyPolicy from './pages/PrivacyPolicy.jsx';
 import TermsConditions from './pages/TermsCondition.jsx';
-import AboutUs from './pages/AboutUS.jsx';
+import AboutUs from './pages/About-Us.jsx';
 
 const router = createBrowserRouter([
   {
