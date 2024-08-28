@@ -51,6 +51,10 @@ const router = createBrowserRouter([
   {
     path : "/admin",
     element : <Admin />
+  },
+  {
+    path : "/privacy",
+    element : <PrivacyPolicy />
   }
 ]);
 
