@@ -39,7 +39,7 @@ const ExportData = () => {
               title: productData.title,
               description: productData.description,
               category: productData.category,
-              variationId: variationDoc.id, // Corrected this line to use variationDoc.id
+              variationName: variationData.name, // Added this line to include the variation name
               quantity: variationData.quantity,
               price: priceData.price,
               minQuantity: priceData.minQuantity,
