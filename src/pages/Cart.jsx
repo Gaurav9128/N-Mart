@@ -151,8 +151,6 @@ const Cart = () => {
             localStorage.setItem("orderDetails",JSON.stringify(orderDetails))
             const orderDetails1 = localStorage.getItem('orderDetails')
            // console.log("order function  ",JSON.parse(orderDetails1));
-            
-            
             if (isCouponValid) {
                 // Save order details directly without payment, generating a new document with a unique ID
                 const orderDate = Timestamp.now();
@@ -243,11 +241,12 @@ const Cart = () => {
             const couponSnap = await getDoc(couponRef);
             if (couponSnap.exists()) {
                 const couponData = couponSnap.data();
+                console.log('data',couponData.isActive)
                 const currentDate = new Date();
                 const startDate = new Date(couponData.startDate);
                 const endDate = new Date(couponData.endDate);
 
-                if (currentDate >= startDate && currentDate <= endDate) {
+                if (currentDate >= startDate && currentDate <= endDate&&couponData.isActive) {
                     setIsCouponValid(true);
                     console.log('Coupon is valid');
                 } else {

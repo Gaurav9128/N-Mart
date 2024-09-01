@@ -79,7 +79,7 @@ const OrderDetails = () => {
   const downloadExcel = () => {
     const formatOrderItems = (items) => {
       return items.map(item => 
-        `Title: ${item.title}\nQuantity: ${item.quantity}\nPrice: ${item.pricePerPiece ? item.pricePerPiece.toFixed(2) : 'N/A'}`
+        `Title: ${item.title}\nVariant: ${item.variantName}\nQuantity: ${item.quantity}\nPrice: ${item.pricePerPiece ? item.pricePerPiece.toFixed(2) : 'N/A'}`
       ).join('\n\n'); // Separate each item with a blank line
     };
   
@@ -153,6 +153,7 @@ const OrderDetails = () => {
                       <thead className="bg-gray-50">
                         <tr>
                           <th className="py-1 px-2 border-b-2 border-gray-200 text-left text-xs font-semibold text-gray-600">Title</th>
+                          <th className="py-1 px-2 border-b-2 border-gray-200 text-left text-xs font-semibold text-gray-600">Variant</th>
                           <th className="py-1 px-2 border-b-2 border-gray-200 text-left text-xs font-semibold text-gray-600">Quantity</th>
                           <th className="py-1 px-2 border-b-2 border-gray-200 text-left text-xs font-semibold text-gray-600">Price per Piece</th>
                         </tr>
@@ -161,6 +162,7 @@ const OrderDetails = () => {
                         {order.orderListItems.map((item, idx) => (
                           <tr key={idx} className="hover:bg-gray-100">
                             <td className="py-1 px-2 border-b border-gray-200 text-xs">{item.title}</td>
+                            <td className="py-1 px-2 border-b border-gray-200 text-xs">{item.variantName}</td>
                             <td className="py-1 px-2 border-b border-gray-200 text-xs">{item.quantity} pcs</td>
                             <td className="py-1 px-2 border-b border-gray-200 text-xs">{item.pricePerPiece ? item.pricePerPiece.toFixed(2) : 'N/A'}</td>
                           </tr>
