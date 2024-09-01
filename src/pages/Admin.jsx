@@ -64,7 +64,7 @@ const Admin = () => {
   return (
     <div className="min-h-screen p-6 bg-gray-100 flex items-center justify-center">
       {loading && <Loader />}
-      {/* {isAdmin ? */}
+      {isAdmin ?
       <div className="container max-w-screen-lg mx-auto">
         <div>
           <h2 className="font-semibold text-xl text-gray-600">Admin Dashboard</h2>
@@ -88,9 +88,9 @@ const Admin = () => {
           </div>
         </div>
       </div>
-    //      :
-    //     <h1>Unauthorized Access</h1>
-    // }  
+         :
+        <h1>Unauthorized Access</h1>
+    }  
     </div>
   );
 };
