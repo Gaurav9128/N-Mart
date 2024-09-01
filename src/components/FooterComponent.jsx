@@ -18,8 +18,8 @@ const FooterComponent = () => {
             <div>
               <Footer.Title title="FAQs" />
               <Footer.LinkGroup col>
-                <Footer.Link href="#">Privacy Policy</Footer.Link>
-                <Footer.Link href="#">Pricing, Delivery, Return & Refund Policy</Footer.Link>
+               <Footer.Link href="/privacy-policy">Privacy Policy</Footer.Link>
+                <Footer.Link href="/terms-condition">Terms & Conditions</Footer.Link>
               </Footer.LinkGroup>
             </div>
             <div>
@@ -36,7 +36,7 @@ const FooterComponent = () => {
             <div>
               <Footer.Title title="Others" />
               <Footer.LinkGroup col>
-                <Footer.Link href="#">Contact Us</Footer.Link>
+               <Footer.Link href="https://wa.me/919829179622">Contact Us</Footer.Link>
                 <Footer.Link href="#">About Us</Footer.Link>
               </Footer.LinkGroup>
             </div>
@@ -44,7 +44,7 @@ const FooterComponent = () => {
         </div>
         <Footer.Divider />
         <div className="w-full sm:flex sm:items-center sm:justify-between">
-          <Footer.Copyright href="#" by="SG™" year={2024} />
+          <Footer.Copyright href="#" by="Developed & Designed By Gaurav Jain ™" year={2024} />
           <div className="mt-4 flex space-x-6 sm:mt-0 sm:justify-center">
           </div>
         </div>
