@@ -162,7 +162,7 @@ const OrderDetails = () => {
                         {order.orderListItems.map((item, idx) => (
                           <tr key={idx} className="hover:bg-gray-100">
                             <td className="py-1 px-2 border-b border-gray-200 text-xs">{item.title}</td>
-                            <td className="py-1 px-2 border-b border-gray-200 text-xs">{item.variant}</td>
+                            <td className="py-1 px-2 border-b border-gray-200 text-xs">{item.variantName}</td>
                             <td className="py-1 px-2 border-b border-gray-200 text-xs">{item.quantity} pcs</td>
                             <td className="py-1 px-2 border-b border-gray-200 text-xs">{item.pricePerPiece ? item.pricePerPiece.toFixed(2) : 'N/A'}</td>
                           </tr>
