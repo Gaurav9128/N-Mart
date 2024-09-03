@@ -79,7 +79,7 @@ const OrderDetails = () => {
   const downloadExcel = () => {
     const formatOrderItems = (items) => {
       return items.map(item => 
-        `Title: ${item.title}\nVariant: ${item.variant}\nQuantity: ${item.quantity}\nPrice: ${item.pricePerPiece ? item.pricePerPiece.toFixed(2) : 'N/A'}`
+        `Title: ${item.title}\nVariant: ${item.variantName}\nQuantity: ${item.quantity}\nPrice: ${item.pricePerPiece ? item.pricePerPiece.toFixed(2) : 'N/A'}`
       ).join('\n\n'); // Separate each item with a blank line
     };
   
