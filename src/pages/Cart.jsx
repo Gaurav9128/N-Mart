@@ -132,7 +132,7 @@ const Cart = () => {
             const orderListItems = cartItems.map(item => ({
                 id: item.id || '',
                 title: item.productTitle || '',
-                variant: item.variantName || '',
+                variantName: item.variantName || '',
                 quantity: item.quantity || 0,
                 pricePerPiece: item.pricePerPiece || 0,
                 discountPrice: item.discountPrice || 0
