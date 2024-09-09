@@ -31,7 +31,7 @@ const ExportData = () => {
           const variationData = variationDoc.data();
           const pricesCollection = collection(variationDoc.ref, 'prices');
           const pricesSnapshot = await getDocs(pricesCollection);
-
+          console.log("Variation data is : ", variationDoc.id)
           const pricePromises = pricesSnapshot.docs.map(async (priceDoc) => {
             const priceData = priceDoc.data();
             data.push({
@@ -39,6 +39,7 @@ const ExportData = () => {
               title: productData.title,
               description: productData.description,
               category: productData.category,
+              variationId:variationDoc.id,
               variationName: variationData.name, // Added this line to include the variation name
               quantity: variationData.quantity,
               price: priceData.price,

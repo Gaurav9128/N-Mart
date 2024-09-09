@@ -1,12 +1,27 @@
 import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
-import { collection, doc, getDoc, writeBatch } from 'firebase/firestore';
+import { doc, getDoc, writeBatch } from 'firebase/firestore';
 import { firestore } from '../firebase/FirebaseConfig';
 
 const ImportData = () => {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [progress, setProgress] = useState(0);
+
+  const requiredHeaders = [
+    'productId',
+    'title',
+    'description',
+    'category',
+    'variationId',
+    'variationName',
+    'quantity',
+    'price',
+    'minQuantity',
+    'maxQuantity',
+    'priceId'
+  ];
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -17,70 +32,117 @@ const ImportData = () => {
       alert('Please select a file.');
       return;
     }
-  
+
     setLoading(true);
     setError(null);
-  
+    setProgress(0);
+
     try {
       if (!file.type.includes('excel') && !file.type.includes('sheet')) {
         throw new Error('Invalid file type. Please upload an Excel file.');
       }
-  
+
       const data = await file.arrayBuffer();
       const workbook = XLSX.read(data, { type: 'array' });
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
       const jsonData = XLSX.utils.sheet_to_json(worksheet);
-  
-      if (!Array.isArray(jsonData) || jsonData.length === 0) {
-        throw new Error('No data found in the file.');
+
+      const headers = Object.keys(jsonData[0]);
+      const missingHeaders = requiredHeaders.filter(header => !headers.includes(header));
+
+      if (missingHeaders.length > 0) {
+        throw new Error(`Missing required headers: ${missingHeaders.join(', ')}`);
       }
-  
-      const batch = writeBatch(firestore);
-  
+
+      const totalRows = jsonData.length;
+      let processedRows = 0;
+
+      const batchSize = 500; // Batch size for Firestore
+      let batch = writeBatch(firestore);
+      let batchCount = 0;
+
       for (const row of jsonData) {
-        const { productId, title, description, category, variationId, quantity, price, minQuantity, maxQuantity } = row;
-  
-        if (!productId || !variationId) {
-          console.warn('Missing required fields in row:', row);
-          continue;
+        processedRows++;
+        batchCount++;
+
+        setProgress(((processedRows / totalRows) * 100).toFixed(2));
+
+        const {
+          productId,
+          title,
+          description,
+          category,
+          variationId,
+          variationName,
+          quantity,
+          price,
+          minQuantity,
+          maxQuantity,
+          priceId
+        } = row;
+
+        for (const header of requiredHeaders) {
+          if (!row[header]) {
+            throw new Error(`Missing value for column: ${header} in row ${processedRows}`);
+          }
         }
-  
+
         const productDocRef = doc(firestore, 'products', productId);
-        const variationDocRef = doc(productDocRef, 'variations', variationId);
-        const priceDocRef = doc(variationDocRef, 'prices', `${minQuantity}-${maxQuantity}`);
-  
         const productSnapshot = await getDoc(productDocRef);
+
+        if (!productSnapshot.exists()) {
+          throw new Error(`Product with ID ${productId} not found in the database.`);
+        }
+
+        const variationDocRef = doc(productDocRef, 'variations', variationId);
         const variationSnapshot = await getDoc(variationDocRef);
+
+        if (!variationSnapshot.exists()) {
+          throw new Error(`Variation with ID ${variationId} not found for product ${productId}.`);
+        }
+
+        const priceDocRef = doc(variationDocRef, 'prices', priceId);
         const priceSnapshot = await getDoc(priceDocRef);
-  
-        if (productSnapshot.exists()) {
-          // Update product details if they exist
-          batch.update(productDocRef, { title, description, category });
-        } else {
-          console.warn(`Product ID ${productId} not found in the database.`);
-          continue;
+
+        if (!priceSnapshot.exists()) {
+          throw new Error(`Price with ID ${priceId} not found for variation ${variationId}.`);
         }
-  
-        if (variationSnapshot.exists()) {
-          // Update variation details if they exist
-          batch.update(variationDocRef, { quantity, price });
-        } else {
-          console.warn(`Variation ID ${variationId} not found in the database.`);
-          continue;
-        }
-  
-        if (priceSnapshot.exists()) {
-          // Update price details if they exist
-          batch.update(priceDocRef, { minQuantity, maxQuantity, price });
-        } else {
-          console.warn(`Price range ${minQuantity}-${maxQuantity} not found for Variation ID ${variationId}.`);
-          continue;
+
+        batch.update(productDocRef, {
+          title,
+          description,
+          category
+        });
+
+        batch.update(variationDocRef, {
+          quantity,
+          price
+        });
+
+        batch.update(priceDocRef, {
+          minQuantity,
+          maxQuantity,
+          price
+        });
+
+        // Commit batch every `batchSize` records
+        if (batchCount === batchSize) {
+          await batch.commit();
+          console.log(`Committed batch of ${batchSize} records`);
+          batch = writeBatch(firestore); // Reset batch
+          batchCount = 0; // Reset counter
         }
       }
-  
-      await batch.commit();
-      alert('Data imported successfully!');
+
+      // Commit any remaining records in the final batch
+      if (batchCount > 0) {
+        await batch.commit();
+        console.log(`Committed final batch of ${batchCount} records`);
+      }
+
+      alert('Data successfully imported and updated!');
+      console.log('All rows processed successfully!');
     } catch (error) {
       setError(`Error importing data: ${error.message}`);
       console.error('Error importing data:', error);
@@ -88,7 +150,6 @@ const ImportData = () => {
       setLoading(false);
     }
   };
-  
 
   return (
     <div>
@@ -106,6 +167,13 @@ const ImportData = () => {
       >
         {loading ? 'Importing...' : 'Import Data'}
       </button>
+      
+      {loading && (
+        <div className="mt-4">
+          <p>Importing: {progress}% complete</p>
+        </div>
+      )}
+
       {error && <p className="text-red-500 mt-2">{error}</p>}
     </div>
   );
