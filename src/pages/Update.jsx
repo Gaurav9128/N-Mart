@@ -103,21 +103,19 @@ const UpdateProduct = () => {
     setLoading(true);
   
     try {
-      let imgUrls = [...imagePreview];
+      let imgUrls = [...imagePreview]; // Assuming imagePreview holds existing images
       
-      // Upload images
-      for (let i = 0; i < image.length; i++) {
-        try {
+      // Upload new images if any
+      if (image.length > 0) {
+        for (let i = 0; i < image.length; i++) {
           const imgRef = ref(storage, `product-images/${selectedCategory}/${image[i].name}`);
           await uploadBytes(imgRef, image[i]);
           const url = await getDownloadURL(imgRef);
           imgUrls.push(url);
-        } catch (imageError) {
-          console.error(`Error uploading image: ${image[i].name}`, imageError);
-          throw new Error(`Image upload failed for ${image[i].name}`);
         }
       }
   
+      // Prepare product data
       const updatedProduct = {
         title,
         description,
@@ -129,95 +127,82 @@ const UpdateProduct = () => {
         visible,
       };
   
-      // Update the main product document
-      try {
-        await updateDoc(doc(firestore, "products", selectedProduct.id), updatedProduct);
-        console.log("Product updated successfully:", updatedProduct);
-      } catch (updateProductError) {
-        console.error("Error updating product document:", updateProductError);
-        throw new Error("Product document update failed");
-      }
+      // Update product document in Firestore
+      await updateDoc(doc(firestore, "products", selectedProduct.id), updatedProduct);
   
-      // Fetch existing variations and prices
-      let existingVariations = [];
-      try {
-        const existingVariationsSnapshot = await getDocs(collection(firestore, "products", selectedProduct.id, "variations"));
-        existingVariations = existingVariationsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        console.log("Existing variations:", existingVariations);
-      } catch (variationsError) {
-        console.error("Error fetching existing variations:", variationsError);
-        throw new Error("Failed to fetch existing variations");
-      }
+      // Fetch existing variations
+      const existingVariationsSnapshot = await getDocs(collection(firestore, "products", selectedProduct.id, "variations"));
+      const existingVariations = existingVariationsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   
-      // Handle variations
-      for (const variation of variations) {
+      // Handle variations and prices
+      for (const [index, variation] of variations.entries()) {
         const existingVariation = existingVariations.find(v => v.name === variation.name);
-        
+  
+        // Calculate the total MRP and apply discount logic
+        let totalmrp = parseFloat(variation.mrp);
+  
+        if (discount1) {
+          let disamount1 = totalmrp * discount1 / 100;
+          totalmrp -= disamount1;
+        }
+        if (discount2) {
+          let disamount2 = totalmrp * discount2 / 100;
+          totalmrp -= disamount2;
+        }
+  
+        // Set the discounted price for the variation
+        const updatedPrice = totalmrp.toFixed(2);
+        variation.price = updatedPrice;
+  
         if (existingVariation) {
-          try {
-            // Update existing variation
-            await updateDoc(doc(firestore, "products", selectedProduct.id, "variations", existingVariation.id), {
-              name: variation.name,
-              quantity: variation.quantity,
-            });
-            console.log(`Updated variation: ${variation.name}`);
+          // Update existing variation and prices
+          await updateDoc(doc(firestore, "products", selectedProduct.id, "variations", existingVariation.id), {
+            name: variation.name,
+            quantity: variation.quantity,
+            price: variation.price, // Updated price after discount
+          });
   
-            // Fetch existing prices for this variation
-            const existingPricesSnapshot = await getDocs(collection(firestore, "products", selectedProduct.id, "variations", existingVariation.id, "prices"));
-            const existingPrices = existingPricesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          // Fetch existing prices
+          const existingPricesSnapshot = await getDocs(collection(firestore, "products", selectedProduct.id, "variations", existingVariation.id, "prices"));
+          const existingPrices = existingPricesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   
-            // Update or add prices
-            for (const price of variation.prices) {
-              const existingPrice = existingPrices.find(p => p.id === price.id);
-  
-              if (existingPrice) {
-                await updateDoc(doc(firestore, "products", selectedProduct.id, "variations", existingVariation.id, "prices", existingPrice.id), {
-                  price: price.price,
-                  minQuantity: price.minQuantity,
-                  maxQuantity: price.maxQuantity,
-                });
-                console.log(`Updated price for variation: ${variation.name}`);
-              } else {
-                await addDoc(collection(firestore, "products", selectedProduct.id, "variations", existingVariation.id, "prices"), {
-                  price: price.price,
-                  minQuantity: price.minQuantity,
-                  maxQuantity: price.maxQuantity,
-                });
-                console.log(`Added new price for variation: ${variation.name}`);
-              }
-            }
-  
-            // Handle deleted prices
-            const pricesToDelete = existingPrices.filter(existingPrice => !variation.prices.some(price => price.id === existingPrice.id));
-            for (const price of pricesToDelete) {
-              await deleteDoc(doc(firestore, "products", selectedProduct.id, "variations", existingVariation.id, "prices", price.id));
-              console.log(`Deleted price with ID: ${price.id}`);
-            }
-          } catch (variationError) {
-            console.error(`Error handling variation: ${variation.name}`, variationError);
-            throw new Error(`Failed to handle variation: ${variation.name}`);
-          }
-        } else {
-          // Add new variation
-          try {
-            const newVariationRef = await addDoc(collection(firestore, "products", selectedProduct.id, "variations"), {
-              name: variation.name,
-              quantity: variation.quantity,
-            });
-            console.log(`Added new variation: ${variation.name}`);
-  
-            // Add new prices
-            for (const price of variation.prices) {
-              await addDoc(collection(firestore, "products", selectedProduct.id, "variations", newVariationRef.id, "prices"), {
-                price: price.price,
+          // Update or add new prices
+          for (const price of variation.prices) {
+            const existingPrice = existingPrices.find(p => p.id === price.id);
+            if (existingPrice) {
+              await updateDoc(doc(firestore, "products", selectedProduct.id, "variations", existingVariation.id, "prices", existingPrice.id), {
+                price: variation.price, // Updated price
                 minQuantity: price.minQuantity,
                 maxQuantity: price.maxQuantity,
               });
-              console.log(`Added new price for variation: ${variation.name}`);
+            } else {
+              await addDoc(collection(firestore, "products", selectedProduct.id, "variations", existingVariation.id, "prices"), {
+                price: variation.price, // Updated price
+                minQuantity: price.minQuantity,
+                maxQuantity: price.maxQuantity,
+              });
             }
-          } catch (newVariationError) {
-            console.error(`Error adding new variation: ${variation.name}`, newVariationError);
-            throw new Error(`Failed to add new variation: ${variation.name}`);
+          }
+  
+          // Handle deleted prices
+          const pricesToDelete = existingPrices.filter(existingPrice => !variation.prices.some(price => price.id === existingPrice.id));
+          for (const price of pricesToDelete) {
+            await deleteDoc(doc(firestore, "products", selectedProduct.id, "variations", existingVariation.id, "prices", price.id));
+          }
+        } else {
+          // Add new variation and prices
+          const newVariationRef = await addDoc(collection(firestore, "products", selectedProduct.id, "variations"), {
+            name: variation.name,
+            quantity: variation.quantity,
+            price: variation.price, // Updated price after discount
+          });
+  
+          for (const price of variation.prices) {
+            await addDoc(collection(firestore, "products", selectedProduct.id, "variations", newVariationRef.id, "prices"), {
+              price: variation.price, // Updated price
+              minQuantity: price.minQuantity,
+              maxQuantity: price.maxQuantity,
+            });
           }
         }
       }
@@ -225,13 +210,7 @@ const UpdateProduct = () => {
       // Handle deleted variations
       const variationsToDelete = existingVariations.filter(existingVariation => !variations.some(variation => variation.name === existingVariation.name));
       for (const variation of variationsToDelete) {
-        try {
-          await deleteDoc(doc(firestore, "products", selectedProduct.id, "variations", variation.id));
-          console.log(`Deleted variation: ${variation.name}`);
-        } catch (deleteVariationError) {
-          console.error(`Error deleting variation: ${variation.name}`, deleteVariationError);
-          throw new Error(`Failed to delete variation: ${variation.name}`);
-        }
+        await deleteDoc(doc(firestore, "products", selectedProduct.id, "variations", variation.id));
       }
   
       setLoading(false);
@@ -243,6 +222,8 @@ const UpdateProduct = () => {
     }
   };
   
+  
+  
 
   const handleVariationChange = (index, field, value) => {
     const updatedVariations = [...variations];
@@ -251,6 +232,7 @@ const UpdateProduct = () => {
   };
 
   const handlePriceChange = (variationIndex, priceIndex, field, value) => {
+    console.log("vairation Index : ", variationIndex, " price Index : ", priceIndex, " fields are : ", field, " value is : ", value)
     const updatedVariations = [...variations];
     updatedVariations[variationIndex].prices[priceIndex][field] = value;
     setVariations(updatedVariations);
@@ -309,7 +291,7 @@ const UpdateProduct = () => {
     if (!mrp) {
         return;
     }
-    console.log(e);
+    // console.log(e);
     let totalmrp = parseFloat(e) || 0; // Ensure totalmrp is a number
     if (discount1) {
         let disamount = totalmrp * discount1 / 100;
@@ -322,6 +304,7 @@ const UpdateProduct = () => {
 
     const newPrice = [...Price];
     newPrice[index] = totalmrp.toFixed(2);
+    console.log("New price is : ", newPrice)
     setPrice(newPrice);
   };
   useEffect(() => {

@@ -49,9 +49,16 @@ const Cart = () => {
                                 transactionId: transactionID,
                                 orderDate: orderDate
                             });
+                            const storedOrderDetails = localStorage.getItem('orderDetails');
+                            const storedOrderId = localStorage.getItem('orderid');
+                            const orderDetailsTemp = JSON.parse(storedOrderDetails);
+                            const cartTotal = orderDetailsTemp.cartTotal;
+                            const orderId = storedOrderId;
                             localStorage.removeItem('orderDetails');
+                            localStorage.removeItem('orderid');
                             await clearCart();
-                            alert('Your Order was Successfully Placed');
+                            // alert('Your Order was Successfully Placed');
+                            alert(`Your Order was Successfully Placed. Your Order ID: ${orderId}, Cart Total: ${cartTotal}`);
                             
                         } else {
                             console.error("Order details are missing from localStorage.");
@@ -187,6 +194,7 @@ const Cart = () => {
                       if(data.status=='NEW'){
                         let orderid  = data.id;
                         let linkUrl = data.payment_links.web;
+                        localStorage.setItem('orderid',orderid);
                         console.log("linkUrl ",linkUrl)
                         window.location.href = linkUrl;
                       }
