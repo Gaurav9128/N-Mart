@@ -3,6 +3,9 @@ import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import './index.css';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import {Button,Modal,Row,Card,Col,Container } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons';
 import Home from './pages/Home.jsx';
 import NotFound from './pages/NotFound.jsx';
 import Product from './pages/Product.jsx';
@@ -19,7 +22,7 @@ import VerificationPending from './pages/VerificationPending.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import PrivacyPolicy from './pages/PrivacyPolicy.jsx';
 import TermsConditions from './pages/TermsCondition.jsx';
-
+import AboutUs from './pages/AboutUs.jsx';
 
 const router = createBrowserRouter([
   {
@@ -60,6 +63,10 @@ const router = createBrowserRouter([
   {
     path : "/terms-condition" ,
     element : <TermsConditions />
+  },
+  {
+    path : "/about-us",
+    element : <AboutUs /> 
   }
 ]);
 
