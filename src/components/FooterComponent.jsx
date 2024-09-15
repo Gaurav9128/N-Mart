@@ -18,8 +18,8 @@ const FooterComponent = () => {
             <div>
               <Footer.Title title="FAQs" />
               <Footer.LinkGroup col>
-                <Footer.Link href="#">Privacy Policy</Footer.Link>
-                <Footer.Link href="#">Pricing, Delivery, Return & Refund Policy</Footer.Link>
+                <Footer.Link href="/privacy-policy">Privacy Policy</Footer.Link>
+                <Footer.Link href="/terms-condition">Terms & Conditions</Footer.Link>
               </Footer.LinkGroup>
             </div>
             <div>
@@ -36,7 +36,7 @@ const FooterComponent = () => {
             <div>
               <Footer.Title title="Others" />
               <Footer.LinkGroup col>
-                <Footer.Link href="#">Contact Us</Footer.Link>
+              <Footer.Link href="https://wa.me/919829179622">Contact Us</Footer.Link>
                 <Footer.Link href="#">About Us</Footer.Link>
               </Footer.LinkGroup>
             </div>
