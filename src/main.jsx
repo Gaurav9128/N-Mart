@@ -19,7 +19,7 @@ import VerificationPending from './pages/VerificationPending.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import PrivacyPolicy from './pages/PrivacyPolicy.jsx';
 import TermsConditions from './pages/TermsCondition.jsx';
-
+import AboutUs from './pages/AboutUs.jsx';
 
 const router = createBrowserRouter([
   {
@@ -56,6 +56,10 @@ const router = createBrowserRouter([
   {
     path : "/privacy-policy" ,
     element : <PrivacyPolicy />
+  },
+  {
+    path : "/About-Us" ,
+    element : <AboutUs />
   },
   {
     path : "/terms-condition" ,
