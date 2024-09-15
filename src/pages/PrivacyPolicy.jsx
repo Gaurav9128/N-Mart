@@ -45,7 +45,10 @@ const PrivacyPolicy = () => {
 
 
       <b>Return & Refund Policy</b><br></br>
-      NO RETURN NO EXCHANGE..
+      NO RETURN NO EXCHANGE..<br/><br/> 
+
+      "If by mistake an expired product is received, you can exchange it at the shop within 7 days or request a refund."
+      
       </div>
 
       <FooterComponent />
