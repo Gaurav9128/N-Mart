@@ -19,16 +19,7 @@ import VerificationPending from './pages/VerificationPending.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import PrivacyPolicy from './pages/PrivacyPolicy.jsx';
 import TermsConditions from './pages/TermsCondition.jsx';
-<<<<<<< HEAD
 import AboutUs from './pages/AboutUs.jsx';
-=======
-<<<<<<< HEAD
-import AboutUs from './pages/AboutUs.jsx';
-=======
-
->>>>>>> dbd33a581ba168b57f0ccb3af4dd4f12b381fafd
->>>>>>> 0d673e3e1acbf0bcacb1803f8b76d879f145e370
-
 
 const router = createBrowserRouter([
   {
@@ -69,19 +60,10 @@ const router = createBrowserRouter([
   {
     path : "/terms-condition" ,
     element : <TermsConditions />
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> 0d673e3e1acbf0bcacb1803f8b76d879f145e370
   },
   {
     path : "/About-Us" ,
     element : <AboutUs />
-<<<<<<< HEAD
-=======
-=======
->>>>>>> dbd33a581ba168b57f0ccb3af4dd4f12b381fafd
->>>>>>> 0d673e3e1acbf0bcacb1803f8b76d879f145e370
   }
 ]);
 
