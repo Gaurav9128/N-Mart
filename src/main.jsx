@@ -60,6 +60,10 @@ const router = createBrowserRouter([
   {
     path : "/terms-condition" ,
     element : <TermsConditions />
+  },
+  {
+    path : "/About-Us" ,
+    element : <AboutUs />
   }
 ]);
 
