@@ -27,6 +27,8 @@ const Cart = () => {
             const queryParams = new URLSearchParams(window.location.search);
             const status = queryParams.get('status');
             const transactionID = queryParams.get('txnId');
+            const responseStatus = queryParams.get('response');
+            console.log('Response Status is : ', responseStatus)
             
             if (status && transactionID) {
                 // Fetch existing order with the same transaction ID
