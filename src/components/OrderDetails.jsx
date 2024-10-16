@@ -58,7 +58,7 @@ const OrderDetails = () => {
           userAddress: userDetails ? userDetails.address : 'No address available',
         };
       }));
-      setOrders(ordersArray.filter(order => order !== null)); // Remove null values
+      setOrders(ordersArray.filter(order => (order !== null && order.paymentStatus!="Pending"))); // Remove null values
     } catch (err) {
       console.error("Error fetching order details:", err);
     }
