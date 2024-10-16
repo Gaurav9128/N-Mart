@@ -74,7 +74,7 @@ const Cart = () => {
 
     const getCartItems = async () => {
         try {
-            const q = query(colfirestorelection(firestore, 'carts'), where("userId", "==", localStorage.getItem('userId')));
+            const q = query(collection(firestore, 'carts'), where("userId", "==", localStorage.getItem('userId')));
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) {
                 const currdoc = querySnapshot.docs[0];
