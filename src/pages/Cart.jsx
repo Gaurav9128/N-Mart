@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
-import { collection, doc, getDocs,getDoc, addDoc,query, where, setDoc, Timestamp, deleteDoc } from 'firebase/firestore';
+import { collection, doc, getDocs,getDoc, addDoc,query, where, setDoc, Timestamp, deleteDoc, updateDoc } from 'firebase/firestore';
 import { firestore } from '../firebase/FirebaseConfig';
 import CartTotal from '../components/CartTotal';
 import CartItem from '../components/CartItem';
@@ -38,19 +38,9 @@ const Cart = () => {
                 );
                 const existingOrderSnapshot = await getDocs(existingOrderQuery);
                 if (status === 'CHARGED') {
-                    if (existingOrderSnapshot.empty) {
                         const orderData = localStorage.getItem('orderDetails');
-                        
                         if (orderData) {
                             const orderDetails = JSON.parse(orderData);
-                            const orderDate = Timestamp.now();
-    
-                            await addDoc(collection(firestore, 'orderDetails'), {
-                                ...orderDetails,
-                                paymentStatus: 'Online Payment',
-                                transactionId: transactionID,
-                                orderDate: orderDate
-                            });
                             const storedOrderDetails = localStorage.getItem('orderDetails');
                             const storedOrderId = localStorage.getItem('orderid');
                             const orderDetailsTemp = JSON.parse(storedOrderDetails);
@@ -65,9 +55,6 @@ const Cart = () => {
                         } else {
                             console.error("Order details are missing from localStorage.");
                         }
-                    } else {
-                        console.log("Order with this transaction ID already exists.");
-                    }
                 } else if (status === 'AUTHENTICATION_FAILED') {
                     alert('Operation AUTHENTICATION_FAILED');
                 } else if (status === 'AUTHORIZATION_FAILED') {
@@ -160,21 +147,26 @@ const Cart = () => {
            // console.log("after ",orderDetails)
             localStorage.setItem("orderDetails",JSON.stringify(orderDetails))
             const orderDetails1 = localStorage.getItem('orderDetails')
+            const orderDate = Timestamp.now();
            // console.log("order function  ",JSON.parse(orderDetails1));
+           const randomId = generateRandomId();
+           const orderDetailsId = await addDoc(collection(firestore, 'orderDetails'), {
+                ...orderDetails,
+                paymentStatus: 'Pending',
+                transactionId: null,
+                orderDate: orderDate,
+                orderId: randomId
+            });
             if (isCouponValid) {
                 // Save order details directly without payment, generating a new document with a unique ID
-                const orderDate = Timestamp.now();
-                await addDoc(collection(firestore, 'orderDetails'), {
-                    ...orderDetails,
-                    paymentStatus: 'Credit Sale',
-                    orderDate: orderDate
+                await updateDoc(doc(firestore, 'orderDetails', orderDetailsId.id), {
+                    paymentStatus: 'Credit Sale'
                 });
                 const cartQuery = query(collection(firestore, "carts"), where("userId", "==", userId));
                 const cartSnapshot = await getDocs(cartQuery);
                 clearCart();
                 alert('Your Order Successfully Placed');
             } else {
-                const randomId = generateRandomId();
                 fetch('https://nmart-node.onrender.com/initiateJuspayPayment', {
                     method: 'POST',
                     headers: {

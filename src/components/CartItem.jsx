@@ -33,7 +33,7 @@ const CartItem = (props) => {
                 setMaxQuantity(data.maxQuantity);
             });
             console.log("pricearray ",pricesArray)
-            setPrices(pricesArray); // Set state with the fetched pricesArray
+            // setPrices(pricesArray); // Set state with the fetched pricesArray
 
         } catch (err) {
             console.error("Error fetching prices data:", err);
