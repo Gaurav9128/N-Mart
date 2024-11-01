@@ -171,11 +171,9 @@ const Cart = () => {
                     method: 'POST',
                     headers: {
                       'Content-Type': 'application/json',
-                      'x-user-id': userId
-                    },
-                    body: JSON.stringify({
-                      orderId: randomId
-                    }),
+                      'x-user-id': userId,
+                      'x-ord-id': randomId
+                    }
                   })
                     .then((response) => {
                       if (!response.ok) {
