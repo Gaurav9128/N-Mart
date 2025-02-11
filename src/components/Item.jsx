@@ -382,9 +382,9 @@ const decreaseQuantity = () => {
                     </button>
                     <div className=' mt-2 w-full flex justify-between items-center'>
                         <div className="flex items-center border-gray-100">
-                            <button className={`${quantity > 1 ? "block" : "hidden"} text-white cursor-pointer rounded-l bg-blue-500 py-1 px-3.5 duration-100 hover:bg-blue-300`} onClick={() => { setQuantity(quantity - 1) }}> - </button>
+                            <button className={`${quantity > minimumQuantityOfItem ? "block" : "hidden"} text-white cursor-pointer rounded-l bg-blue-500 py-1 px-3.5 duration-100 hover:bg-blue-300`} disabled={quantity <= minimumQuantityOfItem ? true : false} onClick={decreaseQuantity}> - </button>
                             <span className="h-8 w-8 border bg-white text-center text-black text-xs outline-none py-2">{quantity}</span>
-                            <button className={`${quantity >= 3 ? "bg-gray-400 cursor-default" : " bg-blue-500 hover:bg-blue-300"} h-8 text-white text-xl rounded-r  px-3 duration-100`} onClick={() => { setQuantity(quantity - 1) }}> + </button>
+                            <button className={` " bg-blue-500 hover:bg-blue-300"} h-8 text-white text-xl rounded-r  px-3 duration-100`} onClick={increaseQuantity}> + </button>
                         </div>
                     </div>
                 </div>
