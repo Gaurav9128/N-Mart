@@ -176,7 +176,7 @@ const Cart = () => {
                     body: JSON.stringify({
                         amount: cartTotal,
                         name: firstName + " " + lastName,
-                        email: email ? email : 'mahabarwal@gmail.com',
+                        email: (email ? email : 'demo@gmail.com'),
                         phone: mobile
                     })
                 })
