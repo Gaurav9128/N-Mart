@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
-import { collection, doc, getDocs,getDoc, addDoc,query, where, setDoc, Timestamp, deleteDoc, updateDoc } from 'firebase/firestore';
+import { collection, doc, getDocs, getDoc, addDoc, query, where, setDoc, Timestamp, deleteDoc, updateDoc } from 'firebase/firestore';
 import { firestore } from '../firebase/FirebaseConfig';
 import CartTotal from '../components/CartTotal';
 import CartItem from '../components/CartItem';
@@ -29,7 +29,7 @@ const Cart = () => {
             const transactionID = queryParams.get('txnId');
             const responseStatus = queryParams.get('response');
             console.log('Response Status is : ', responseStatus)
-            
+
             if (status && transactionID) {
                 // Fetch existing order with the same transaction ID
                 const existingOrderQuery = query(
@@ -38,39 +38,39 @@ const Cart = () => {
                 );
                 const existingOrderSnapshot = await getDocs(existingOrderQuery);
                 if (status === 'CHARGED') {
-                        const orderData = localStorage.getItem('orderDetails');
-                        if (orderData) {
-                            const orderDetails = JSON.parse(orderData);
-                            const storedOrderDetails = localStorage.getItem('orderDetails');
-                            const storedOrderId = localStorage.getItem('orderid');
-                            const orderDetailsTemp = JSON.parse(storedOrderDetails);
-                            const cartTotal = orderDetailsTemp.cartTotal;
-                            const orderId = storedOrderId;
-                            localStorage.removeItem('orderDetails');
-                            localStorage.removeItem('orderid');
-                            await clearCart();
-                            // alert('Your Order was Successfully Placed');
-                            alert(`Your Order was Successfully Placed. Your Order ID: ${orderId}, Cart Total: ${cartTotal}`);
-                            
-                        } else {
-                            console.error("Order details are missing from localStorage.");
-                        }
+                    const orderData = localStorage.getItem('orderDetails');
+                    if (orderData) {
+                        const orderDetails = JSON.parse(orderData);
+                        const storedOrderDetails = localStorage.getItem('orderDetails');
+                        const storedOrderId = localStorage.getItem('orderid');
+                        const orderDetailsTemp = JSON.parse(storedOrderDetails);
+                        const cartTotal = orderDetailsTemp.cartTotal;
+                        const orderId = storedOrderId;
+                        localStorage.removeItem('orderDetails');
+                        localStorage.removeItem('orderid');
+                        await clearCart();
+                        // alert('Your Order was Successfully Placed');
+                        alert(`Your Order was Successfully Placed. Your Order ID: ${orderId}, Cart Total: ${cartTotal}`);
+
+                    } else {
+                        console.error("Order details are missing from localStorage.");
+                    }
                 } else if (status === 'AUTHENTICATION_FAILED') {
                     alert('Operation AUTHENTICATION_FAILED');
                 } else if (status === 'AUTHORIZATION_FAILED') {
                     alert('Operation AUTHORIZATION_FAILED');
                 }
             }
-    
+
             // Redirect to the cart page
-            
+
         };
-    
+
         fetchOrderStatus();
     }, []); // Empty dependencies array to ensure it runs only once
-    
-     // Empty dependencies array to ensure it runs only once
-    
+
+    // Empty dependencies array to ensure it runs only once
+
 
     const getCartItems = async () => {
         try {
@@ -106,24 +106,24 @@ const Cart = () => {
     };
     function generateRandomId() {
         return Math.floor(10000000 + Math.random() * 90000000).toString();
-      }
+    }
     const handleCheckout = async () => {
         console.log("handleCheckout function called");
-    
+
         try {
             // Define currentUrl here
             const currentUrl = window.location.href;
-    
+
             // Fetch user details using userId
             const userDoc = await getDoc(doc(firestore, 'users', userId));
             if (!userDoc.exists()) {
                 console.error('User not found');
                 return;
             }
-    
+
             const userData = userDoc.data();
             const { firstName, lastName, mobile, email } = userData;
-            
+
             // Ensure all fields in the order items are defined
             const orderListItems = cartItems.map(item => ({
                 id: item.id || '',
@@ -133,10 +133,10 @@ const Cart = () => {
                 pricePerPiece: item.pricePerPiece || 0,
                 discountPrice: item.discountPrice || 0
             }));
-    
-            
+
+
             const couponStatus = isCouponValid ? 'Valid' : 'Invalid';
-    
+
             const orderDetails = {
                 userId: userId,
                 orderListItems: orderListItems,
@@ -144,13 +144,13 @@ const Cart = () => {
                 cartTotal: cartTotal,
                 savings: savings
             };
-           // console.log("after ",orderDetails)
-            localStorage.setItem("orderDetails",JSON.stringify(orderDetails))
+            // console.log("after ",orderDetails)
+            localStorage.setItem("orderDetails", JSON.stringify(orderDetails))
             const orderDetails1 = localStorage.getItem('orderDetails')
             const orderDate = Timestamp.now();
-           // console.log("order function  ",JSON.parse(orderDetails1));
-           const randomId = generateRandomId();
-           const orderDetailsId = await addDoc(collection(firestore, 'orderDetails'), {
+            // console.log("order function  ",JSON.parse(orderDetails1));
+            const randomId = generateRandomId();
+            const orderDetailsId = await addDoc(collection(firestore, 'orderDetails'), {
                 ...orderDetails,
                 paymentStatus: 'Pending',
                 transactionId: null,
@@ -167,48 +167,55 @@ const Cart = () => {
                 clearCart();
                 alert('Your Order Successfully Placed');
             } else {
-                fetch('https://nmart-node.onrender.com/initiateJuspayPayment', {
+                console.log("payment gateway data ", cartTotal);
+                fetch('https://nmart-node.onrender.com/initiate-payment', {
                     method: 'POST',
                     headers: {
-                      'Content-Type': 'application/json',
-                      'x-user-id': userId,
-                      'x-ord-id': randomId
-                    }
-                  })
-                    .then((response) => {
-                      if (!response.ok) {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        amount: cartTotal,
+                        name: firstName + " " + lastName,
+                        email: email ? email : 'mahabarwal@gmail.com',
+                        phone: mobile
+                    })
+                })
+                .then((response) => {
+                    if (!response.ok) {
                         throw new Error('Network response was not ok');
-                      }
-                      return response.json();
-                    })
-                    .then((data) => {
-                      console.log('Response data:', data);  // Handle the JSON data
-                      if(data.status=='NEW'){
-                        let orderid  = data.id;
-                        let linkUrl = data.payment_links.web;
-                        localStorage.setItem('orderid',orderid);
-                        console.log("linkUrl ",linkUrl)
-                        window.location.href = linkUrl;
-                      }
-                    })
-                    .catch((error) => {
-                      console.error('There was a problem with the fetch operation:', error);
-                    });
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    console.log('Response data:', data);  // Handle the JSON data
+                    if (data && data.payment_url) {
+                        let orderid = data.id;
+                        let linkUrl = data.payment_url.replace(/\n/g, ""); // Remove newlines
+                        localStorage.setItem('orderid', orderid);
+                        console.log("linkUrl ", linkUrl);
+                        // window.location.href = linkUrl;
+                    }
+                })
+                .catch((error) => {
+                    console.error('There was a problem with the fetch operation:', error);
+                });
             }
-    
+            
+            
+
             // Clear the cart by deleting the items
             // Update the state to clear the cart in the UI
             setCartItems([]);
             setCartTotal(0);
             setSavings(0);
-    
+
             // Optionally, re-fetch cart items to ensure they are cleared
             getCartItems();
         } catch (err) {
             console.error('Error creating order:', err);
         }
     };
-    
+
     const clearCart = async () => {
         const cartQuery = query(collection(firestore, "carts"), where("userId", "==", userId));
         const cartSnapshot = await getDocs(cartQuery);
@@ -235,19 +242,19 @@ const Cart = () => {
         // Optionally, re-fetch cart items to ensure they are cleared
         getCartItems();
     };
-    
+
     const validateCoupon = async () => {
         try {
             const couponRef = doc(firestore, 'coupons', couponCode);
             const couponSnap = await getDoc(couponRef);
             if (couponSnap.exists()) {
                 const couponData = couponSnap.data();
-                console.log('data',couponData.isActive)
+                console.log('data', couponData.isActive)
                 const currentDate = new Date();
                 const startDate = new Date(couponData.startDate);
                 const endDate = new Date(couponData.endDate);
 
-                if (currentDate >= startDate && currentDate <= endDate&&couponData.isActive) {
+                if (currentDate >= startDate && currentDate <= endDate && couponData.isActive) {
                     setIsCouponValid(true);
                     console.log('Coupon is valid');
                 } else {
@@ -265,7 +272,7 @@ const Cart = () => {
     };
 
 
-  
+
     useEffect(() => {
         const total = cartItems.reduce((acc, currItem) => {
             if (currItem.pricePerPiece && currItem.quantity) {
@@ -313,7 +320,7 @@ const Cart = () => {
                     </div>
                     <CartTotal cartItems={cartItems} onCheckout={handleCheckout} />
                 </div>
-                : 
+                :
                 <div className='mx-auto w-11/12 max-w-screen-2xl flex flex-col items-center justify-center gap-4 mb-10'>
                     <svg className='h-32 w-auto' viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
