@@ -193,7 +193,7 @@ const Cart = () => {
                         let linkUrl = data.payment_url.replace(/\n/g, ""); // Remove newlines
                         localStorage.setItem('orderid', orderid);
                         console.log("linkUrl ", linkUrl);
-                        // window.location.href = linkUrl;
+                        window.location.href = linkUrl;
                     }
                 })
                 .catch((error) => {
