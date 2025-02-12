@@ -167,7 +167,7 @@ const Cart = () => {
                 clearCart();
                 alert('Your Order Successfully Placed');
             } else {
-                console.log("payment gateway data ", cartTotal);
+                console.log("payment gateway data ", cartTotal + firstName +  lastName + email + mobile);
                 fetch('https://nmart-node.onrender.com/initiate-payment', {
                     method: 'POST',
                     headers: {
