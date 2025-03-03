@@ -67,8 +67,8 @@ const router = createBrowserRouter([
   },
   {
     path: "/payment-success", 
-    element: <PaymentSuccess />
-  }
+    element: <PaymentSuccess />,
+  },
 ]);
 
 ReactDOM.createRoot(document.getElementById('root')).render(
