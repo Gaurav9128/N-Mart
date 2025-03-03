@@ -20,7 +20,7 @@ import ProtectedRoute from './components/ProtectedRoute.jsx';
 import PrivacyPolicy from './pages/PrivacyPolicy.jsx';
 import TermsConditions from './pages/TermsCondition.jsx';
 import AboutUs from './pages/AboutUs.jsx';
-
+import PaymentSuccess from './Testing.jsx';
 const router = createBrowserRouter([
   {
     path: "/",
@@ -64,6 +64,10 @@ const router = createBrowserRouter([
   {
     path : "/About-Us" ,
     element : <AboutUs />
+  },
+  {
+    path: "/payment-success", 
+    element: <PaymentSuccess />,
   }
 ]);
 
