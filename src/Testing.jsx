@@ -10,41 +10,39 @@ const PaymentSuccess = () => {
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const data = params.get("data");
-        console.log("Raw Data:", data);
-
-        console.log(data);
-
+    
         const storedOrderDetails = localStorage.getItem("orderDetailsId");
         const orderDetailsTemp = storedOrderDetails ? JSON.parse(storedOrderDetails) : null;
-
+    
         if (data && orderDetailsTemp) {
             const decodedData = decodeURIComponent(data);
             console.log("Decoded Data:", decodedData);
-
+    
             const parsedData = Object.fromEntries(
                 decodedData.split("&").map((pair) => {
-                    const [key, value] = pair.split("=");
-                    return [key, value || ""]; // Handle empty values
+                    let [key, value] = pair.split("=");
+                    value = value === "null" || value === undefined ? null : decodeURIComponent(value); // Convert "null" strings to actual null
+                    return [key, value];
                 })
             );
-
+    
             console.log("Parsed Data:", parsedData);
             setPaymentData(parsedData);
-
-            // 🔥 Step 1: Determine payment status
+    
+            // 🔥 Determine payment status
             let paymentStatus = "Pending"; // Default status
             if (parsedData.order_status === "Success") {
                 paymentStatus = "Completed";
             } else if (parsedData.order_status === "Failure" || parsedData.order_status === "Aborted") {
                 paymentStatus = "Failed";
             }
-
-            // 🔥 Step 2: Get the correct Firestore document ID
-            const orderId = orderDetailsTemp.id || orderDetailsTemp; // Adjust based on how it's stored
-
+    
+            // 🔥 Get Firestore document ID
+            const orderId = orderDetailsTemp.id || orderDetailsTemp;
+    
             if (orderId) {
                 const orderRef = doc(firestore, "orderDetails", orderId);
-
+    
                 updateDoc(orderRef, {
                     paymentStatus,
                     transactionId: parsedData.tracking_id || null,
@@ -61,6 +59,7 @@ const PaymentSuccess = () => {
         }
     }, [location]);
 
+    console.log(paymentData);
     return (
         <div>
             <h2>Payment Status: {paymentData?.order_status || "N/A"}</h2>
