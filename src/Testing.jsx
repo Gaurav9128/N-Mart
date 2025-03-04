@@ -12,6 +12,8 @@ const PaymentSuccess = () => {
         const data = params.get("data");
         console.log("Raw Data:", data);
 
+        console.log(data);
+
         const storedOrderDetails = localStorage.getItem("orderDetailsId");
         const orderDetailsTemp = storedOrderDetails ? JSON.parse(storedOrderDetails) : null;
 
