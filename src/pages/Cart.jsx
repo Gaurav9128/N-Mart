@@ -157,6 +157,7 @@ const Cart = () => {
                 orderDate: orderDate,
                 orderId: randomId
             });
+            console.log("orderDetailsId ",orderDetailsId)
             if (isCouponValid) {
                 // Save order details directly without payment, generating a new document with a unique ID
                 await updateDoc(doc(firestore, 'orderDetails', orderDetailsId.id), {
@@ -167,7 +168,7 @@ const Cart = () => {
                 clearCart();
                 alert('Your Order Successfully Placed');
             } else {
-                console.log("payment gateway data ", cartTotal + firstName +  lastName + email + mobile);
+                console.log("payment gateway data ", cartTotal);
                 fetch('https://nmart-node.onrender.com/initiate-payment', {
                     method: 'POST',
                     headers: {
@@ -176,7 +177,7 @@ const Cart = () => {
                     body: JSON.stringify({
                         amount: cartTotal,
                         name: firstName + " " + lastName,
-                        email: (email ? email : 'demo@gmail.com'),
+                        email: email ? email : 'mahabarwal@gmail.com',
                         phone: mobile
                     })
                 })
@@ -191,7 +192,7 @@ const Cart = () => {
                     if (data && data.payment_url) {
                         let orderid = data.id;
                         let linkUrl = data.payment_url.replace(/\n/g, ""); // Remove newlines
-                        localStorage.setItem('orderid', orderid);
+                        localStorage.setItem('orderDetailsId',JSON.stringify(orderDetailsId));
                         console.log("linkUrl ", linkUrl);
                         window.location.href = linkUrl;
                     }
