@@ -10,6 +10,7 @@ const PaymentSuccess = () => {
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const data = params.get("data");
+        console.log(data);
         const storedOrderDetails = localStorage.getItem('orderDetailsId');
         const orderDetailsTemp = storedOrderDetails ? JSON.parse(storedOrderDetails) : null;
 
@@ -21,7 +22,7 @@ const PaymentSuccess = () => {
                     return [key, value || ""];
                 })
             );
-
+          
             setPaymentData(parsedData);
 
             // 🔥 Step 1: Determine payment status
