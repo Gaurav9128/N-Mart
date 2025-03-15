@@ -16,6 +16,7 @@ const PaymentStatus = () => {
 
   // Extract query params from URL
   const queryParams = getQueryParams(location.search);
+  console.log(queryParams);
 
   return (
     <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
