@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { firestore } from "../firebase/FirebaseConfig";
+import { firestore } from "./firebase/FirebaseConfig";
 import { collection, query, where, getDocs, updateDoc } from "firebase/firestore";
 import { CheckCircleIcon, XCircleIcon, LoaderIcon } from "lucide-react";
 
