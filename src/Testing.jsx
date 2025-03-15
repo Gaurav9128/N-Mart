@@ -16,7 +16,9 @@ const PaymentSuccess = () => {
             const status = queryParams.get("status");
             const transactionID = queryParams.get("txnId");
 
-            console.log(queryParams,status,transactionID);
+            console.log("queryParams",queryParams);
+            console.log("status",status);
+            console.log("transactionID",transactionID);
 
             if (status === "CHARGED" && transactionID) {
                 try {
