@@ -1,51 +1,73 @@
-import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { firestore } from "../firebase/FirebaseConfig";
+import { collection, query, where, getDocs, updateDoc } from "firebase/firestore";
+import { CheckCircleIcon, XCircleIcon, LoaderIcon } from "lucide-react";
 
 const PaymentSuccess = () => {
-    const location = useLocation();
+    const navigate = useNavigate();
+    const [statusMessage, setStatusMessage] = useState("Processing Payment...");
+    const [statusType, setStatusType] = useState("loading"); // 'loading', 'success', 'error'
+    
 
-    // Function to parse query parameters
-    const getQueryParams = (queryString) => {
-        const params = new URLSearchParams(queryString);
-        const entries = {};
-        for (const [key, value] of params) {
-            entries[key] = decodeURIComponent(value || "N/A"); // Decode & handle empty values
-        }
-        return entries;
-    };
+    useEffect(() => {
+        const updatePaymentStatus = async () => {
+            const queryParams = new URLSearchParams(window.location.search);
+            const status = queryParams.get("status");
+            const transactionID = queryParams.get("txnId");
 
-    // Extract query params from URL
-    const queryParams = getQueryParams(location.search);
-    console.log("queryParams: ", queryParams);
+            console.log(queryParams,status,transactionID);
 
-    // Extract `data` parameter and parse it further
-    const rawData = queryParams.data || ""; // Ensure `data` exists
-    const extractedParams = getQueryParams(rawData); // Parse the nested query string
-    console.log("Extracted Params: ", extractedParams);
+            if (status === "CHARGED" && transactionID) {
+                try {
+                    const orderQuery = query(
+                        collection(firestore, "orderDetails"),
+                        where("transactionId", "==", transactionID)
+                    );
+                    const orderSnapshot = await getDocs(orderQuery);
 
-    // Extract `order_id`
-    const orderId = extractedParams.order_id || "N/A";
-    console.log("Order ID: ", orderId);
+                    if (!orderSnapshot.empty) {
+                        const orderDoc = orderSnapshot.docs[0];
+                        const orderRef = orderDoc.ref;
+
+                        await updateDoc(orderRef, { paymentStatus: "Paid" });
+
+                        setStatusMessage("Payment Successful! Your order has been confirmed.");
+                        setStatusType("success");
+                    } else {
+                        setStatusMessage("Order not found. Please contact support.");
+                        setStatusType("error");
+                    }
+                } catch (error) {
+                    console.error("Error updating payment status:", error);
+                    setStatusMessage("An error occurred while processing your payment.");
+                    setStatusType("error");
+                }
+            } else {
+                setStatusMessage("Payment Failed! Please try again.");
+                setStatusType("error");
+            }
+
+            // Redirect after 3 seconds
+            setTimeout(() => navigate("/orders"), 3000);
+        };
+
+        updatePaymentStatus();
+    }, [navigate]);
 
     return (
-        <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-            <h2>Payment Status</h2>
-            <table border="1" cellPadding="10" style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                    <tr>
-                        <th>Parameter</th>
-                        <th>Value</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {Object.entries(extractedParams).map(([key, value]) => (
-                        <tr key={key}>
-                            <td style={{ fontWeight: "bold" }}>{key}</td>
-                            <td>{value}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 px-4">
+            {statusType === "loading" && (
+                <LoaderIcon className="animate-spin w-12 h-12 text-blue-500 mb-4" />
+            )}
+            {statusType === "success" && (
+                <CheckCircleIcon className="w-16 h-16 text-green-500 mb-4" />
+            )}
+            {statusType === "error" && (
+                <XCircleIcon className="w-16 h-16 text-red-500 mb-4" />
+            )}
+            <h1 className="text-xl font-semibold">{statusMessage}</h1>
+            <p className="text-gray-600 mt-2">Redirecting you to orders...</p>
         </div>
     );
 };
