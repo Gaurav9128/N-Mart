@@ -49,7 +49,7 @@ const PaymentSuccess = () => {
             }
 
             // Redirect after 3 seconds
-            setTimeout(() => navigate("/orders"), 3000);
+            //setTimeout(() => navigate("/orders"), 3000);
         };
 
         updatePaymentStatus();
