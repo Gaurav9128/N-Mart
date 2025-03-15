@@ -26,6 +26,7 @@
     "flowbite-react": "^0.7.2",
     "http-proxy-middleware": "^3.0.0",
     "json2csv": "^6.0.0-alpha.2",
+    "lucide-react": "^0.482.0",
     "otp-timer": "^1.1.5",
     "papaparse": "^5.4.1",
     "react": "^18.3.1",
