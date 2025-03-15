@@ -8,11 +8,20 @@ const PaymentSuccess = () => {
     const navigate = useNavigate();
     const [statusMessage, setStatusMessage] = useState("Processing Payment...");
     const [statusType, setStatusType] = useState("loading"); // 'loading', 'success', 'error'
-    
+    // Function to parse query parameters
+    const getQueryParams = (queryString) => {
+      const params = new URLSearchParams(queryString);
+      const entries = {};
+      for (const [key, value] of params) {
+          entries[key] = decodeURIComponent(value || "N/A"); // Decode & handle empty values
+      }
+      return entries;
+  };
 
     useEffect(() => {
+
         const updatePaymentStatus = async () => {
-            const queryParams = new URLSearchParams(window.location.search);
+            const queryParams = getQueryParams(location.search);
             const status = queryParams.get("status");
             const transactionID = queryParams.get("txnId");
 
