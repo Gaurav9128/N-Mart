@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
+
 
 const PaymentStatus = () => {
   const location = useLocation();
@@ -53,9 +54,10 @@ const [allData,setAllData] = useState(null)
         const queryParams = getQueryParams(location.search);
         setAllData(queryParams)
         const storedOrderId = localStorage.getItem('orderid');
+        const OrderId = JSON.parse(storedOrderId)
         const orderStatus = getOrderDetails(queryParams);
-        updateOrderStatus(storedOrderId,orderStatus)
-        console.log("orderId orderStatus",storedOrderId,orderStatus);
+        updateOrderStatus(OrderId,orderStatus)
+        console.log("orderId orderStatus",OrderId,orderStatus);
     }
     updateData()
   })
