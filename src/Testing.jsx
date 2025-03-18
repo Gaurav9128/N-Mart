@@ -15,9 +15,12 @@ const PaymentStatus = () => {
     
   };
 
-  function getOrderId(data) {
-    const params = new URLSearchParams(data);
-    return params.get('order_id');
+  function getOrderId(queryParams) {
+    if (queryParams?.data) {
+      const params = new URLSearchParams(queryParams.data);
+      return params.get('order_id');
+    }
+    return null;
   }
   // Extract query params from URL
   const queryParams = getQueryParams(location.search);
