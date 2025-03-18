@@ -1,10 +1,10 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { collection, query, where, getDocs } from 'firebase/firestore';
 
 const PaymentStatus = () => {
   const location = useLocation();
-
+const [allData,setAllData] = useState(null)
   // Function to parse query parameters
   const getQueryParams = (queryString) => {
     const params = new URLSearchParams(queryString);
@@ -51,6 +51,7 @@ const PaymentStatus = () => {
   useEffect(()=>{
     const updateData = ()=>{
         const queryParams = getQueryParams(location.search);
+        setAllData(queryParams)
         const storedOrderId = localStorage.getItem('orderid');
         const orderStatus = getOrderDetails(queryParams);
         updateOrderStatus(storedOrderId,orderStatus)
@@ -73,7 +74,7 @@ const PaymentStatus = () => {
           </tr>
         </thead>
         <tbody>
-          {Object.entries(queryParams).map(([key, value]) => (
+          {Object.entries(allData).map(([key, value]) => (
             <tr key={key}>
               <td style={{ fontWeight: "bold" }}>{key}</td>
               <td>{value}</td>
