@@ -7,19 +7,22 @@ const PaymentStatus = () => {
   // Function to parse query parameters
   const getQueryParams = (queryString) => {
     const params = new URLSearchParams(queryString);
-    console.log("params",params);
     const entries = {};
     for (const [key, value] of params) {
       entries[key] = decodeURIComponent(value || "N/A"); // Decode & handle empty values
     }
-      console.log("entries",entries);
     return entries;
     
   };
 
+  function getOrderId(data) {
+    const params = new URLSearchParams(data);
+    return params.get('order_id');
+  }
   // Extract query params from URL
   const queryParams = getQueryParams(location.search);
-  console.log("queryParams",queryParams);
+  const orderId = getOrderId(queryParams)
+  console.log("orderId",orderId);
   
 
   return (
