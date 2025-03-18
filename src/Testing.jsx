@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
 const PaymentStatus = () => {
   const location = useLocation();
@@ -15,17 +16,50 @@ const PaymentStatus = () => {
     
   };
 
-  function getOrderId(queryParams) {
+  function getOrderDetails(queryParams) {
     if (queryParams?.data) {
       const params = new URLSearchParams(queryParams.data);
-      return params.get('order_id');
+      const orderStatus = params.get('order_status');
+      return { orderId, orderStatus };
     }
-    return null;
+    return { orderId: null, orderStatus: null };
   }
+  const updateOrderStatus = async (orderId, orderStatus) => {
+    try {
+      const ordersRef = collection(firestore, 'orderDetails');
+      const q = query(ordersRef, where('orderId', '==', orderId));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        console.error("Order not found for Order ID:", orderId);
+        return;
+      }
+
+      const orderDoc = querySnapshot.docs[0]; // Assuming orderId is unique
+      const docRef = doc(firestore, 'orderDetails', orderDoc.id);
+
+      await updateDoc(docRef, {
+        paymentStatus: orderStatus
+      });
+
+      console.log(`Order ID ${orderId} updated with status: ${orderStatus}`);
+    } catch (err) {
+      console.error("Error updating order status:", err);
+    }
+  };
+
+  useEffect(()=>{
+    const updateData = ()=>{
+        const queryParams = getQueryParams(location.search);
+        const storedOrderId = localStorage.getItem('orderid');
+        const orderStatus = getOrderDetails(queryParams);
+        updateOrderStatus(storedOrderId,orderStatus)
+        console.log("orderId orderStatus",storedOrderId,orderStatus);
+    }
+    updateData()
+  })
   // Extract query params from URL
-  const queryParams = getQueryParams(location.search);
-  const orderId = getOrderId(queryParams)
-  console.log("orderId",orderId);
+ 
   
 
   return (
