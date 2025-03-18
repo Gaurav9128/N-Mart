@@ -7,15 +7,20 @@ const PaymentStatus = () => {
   // Function to parse query parameters
   const getQueryParams = (queryString) => {
     const params = new URLSearchParams(queryString);
+    console.log("params",params);
     const entries = {};
     for (const [key, value] of params) {
       entries[key] = decodeURIComponent(value || "N/A"); // Decode & handle empty values
     }
+      console.log("entries",entries);
     return entries;
+    
   };
 
   // Extract query params from URL
   const queryParams = getQueryParams(location.search);
+  console.log("queryParams",queryParams);
+  
 
   return (
     <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
