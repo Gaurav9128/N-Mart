@@ -148,7 +148,7 @@ const Cart = () => {
             localStorage.setItem("orderDetails", JSON.stringify(orderDetails))
             const orderDetails1 = localStorage.getItem('orderDetails')
             const orderDate = Timestamp.now();
-            // console.log("order function  ",JSON.parse(orderDetails1));
+            console.log("order function  ",JSON.parse(orderDetails1));
             const randomId = generateRandomId();
             const orderDetailsId = await addDoc(collection(firestore, 'orderDetails'), {
                 ...orderDetails,
@@ -190,10 +190,9 @@ const Cart = () => {
                 .then((data) => {
                     console.log('Response data:', data);  // Handle the JSON data
                     if (data && data.payment_url) {
-                        let orderid = data.id;
                         let linkUrl = data.payment_url.replace(/\n/g, ""); // Remove newlines
-                        localStorage.setItem('orderid',JSON.stringify(orderid));
-                        console.log("orderid ",orderid)
+                        localStorage.setItem('orderid',JSON.stringify(randomId));
+                        console.log("orderid ",randomId)
                         console.log("linkUrl ", linkUrl);
                         // window.location.href = linkUrl;
                     }
