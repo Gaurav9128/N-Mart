@@ -17,38 +17,38 @@ const [allData,setAllData] = useState(null)
     
   };
 
-  // function getOrderDetails(queryParams) {
-  //   if (queryParams?.data) {
-  //     const params = new URLSearchParams(queryParams.data);
-  //     const orderStatus = params.get('order_status');
-  //     return { orderId, orderStatus };
-  //   }
-  //   return { orderId: null, orderStatus: null };
-  // }
-  // const updateOrderStatus = async (orderId, orderStatus) => {
-  //   try {
+  function getOrderDetails(queryParams) {
+    if (queryParams?.data) {
+      const params = new URLSearchParams(queryParams.data);
+      const orderStatus = params.get('order_status');
+      return { orderId, orderStatus };
+    }
+    return { orderId: null, orderStatus: null };
+  }
+  const updateOrderStatus = async (orderId, orderStatus) => {
+    try {
 
-  //     const ordersRef = collection(firestore, 'orderDetails');
-  //     const q = query(ordersRef, where('orderId', '==', orderId));
-  //     console.log("q ",q)
-  //     const querySnapshot = await getDocs(q);
-  //     console.log("querySnapshot ",querySnapshot)
-  //     if (querySnapshot.empty) {
-  //       console.error("Order not found for Order ID:", orderId);
-  //       return;
-  //     }
+      const ordersRef = collection(firestore, 'orderDetails');
+      const q = query(ordersRef, where('orderId', '==', orderId));
+      console.log("q ",q)
+      const querySnapshot = await getDocs(q);
+      console.log("querySnapshot ",querySnapshot)
+      if (querySnapshot.empty) {
+        console.error("Order not found for Order ID:", orderId);
+        return;
+      }
 
-  //     const orderDoc = querySnapshot.docs[0]; // Assuming orderId is unique
-  //     const docRef = doc(firestore, 'orderDetails', orderDoc.id);
+      const orderDoc = querySnapshot.docs[0]; // Assuming orderId is unique
+      const docRef = doc(firestore, 'orderDetails', orderDoc.id);
 
-  //     await updateDoc(docRef, {
-  //       paymentStatus: orderStatus
-  //     });
+      await updateDoc(docRef, {
+        paymentStatus: orderStatus
+      });
 
-  //   } catch (err) {
-  //     console.error("Error updating order status:", err);
-  //   }
-  // };
+    } catch (err) {
+      console.error("Error updating order status:", err);
+    }
+  };
 
   useEffect(()=>{
     const updateData = ()=>{
@@ -68,13 +68,12 @@ const [allData,setAllData] = useState(null)
         }
         
 
-        // console.log("OrderId ",OrderId)
-        // const orderStatus = getOrderDetails(queryParams);
-        // console.log("orderStatus ",orderStatus)
-        // updateOrderStatus(OrderId,orderStatus)
+        const orderStatus = getOrderDetails(queryParams);
+        console.log("orderStatus ",orderStatus)
+        updateOrderStatus(OrderId,orderStatus)
     }
     updateData()
-  })
+  },[])
   // Extract query params from URL
  
   
@@ -90,12 +89,12 @@ const [allData,setAllData] = useState(null)
           </tr>
         </thead>
         <tbody>
-          {/* {Object.entries(allData).map(([key, value]) => (
+          {Object.entries(allData).map(([key, value]) => (
             <tr key={key}>
               <td style={{ fontWeight: "bold" }}>{key}</td>
               <td>{value}</td>
             </tr>
-          ))} */}
+          ))}
         </tbody>
       </table>
     </div>
