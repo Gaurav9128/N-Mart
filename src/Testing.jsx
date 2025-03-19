@@ -17,14 +17,14 @@ const [allData,setAllData] = useState(null)
     
   };
 
-  function getOrderDetails(queryParams) {
-    if (queryParams?.data) {
-      const params = new URLSearchParams(queryParams.data);
-      const orderStatus = params.get('order_status');
-      return { orderId, orderStatus };
-    }
-    return { orderId: null, orderStatus: null };
-  }
+  // function getOrderDetails(queryParams) {
+  //   if (queryParams?.data) {
+  //     const params = new URLSearchParams(queryParams.data);
+  //     const orderStatus = params.get('order_status');
+  //     return { orderId, orderStatus };
+  //   }
+  //   return { orderId: null, orderStatus: null };
+  // }
   // const updateOrderStatus = async (orderId, orderStatus) => {
   //   try {
 
@@ -55,13 +55,22 @@ const [allData,setAllData] = useState(null)
         const queryParams = getQueryParams(location.search);
         console.log("queryParams ",queryParams)
         setAllData(queryParams)
-        const storedOrderId = localStorage.getItem('orderid');
-        console.log("storedOrderId ",storedOrderId)
-        const OrderId = JSON.parse(storedOrderId)
+        try {
+          const storedOrderId = localStorage.getItem('orderid');
+          console.log("storedOrderId:", storedOrderId);
+        
+          // Parse if it's a valid JSON
+          const OrderId = storedOrderId ? JSON.parse(storedOrderId) : null;
+        
+          console.log("OrderId:", OrderId);
+        } catch (error) {
+          console.error("Error parsing orderid:", error);
+        }
+        
 
         console.log("OrderId ",OrderId)
-         const orderStatus = getOrderDetails(queryParams);
-        console.log("orderStatus ",orderStatus)
+        // const orderStatus = getOrderDetails(queryParams);
+        // console.log("orderStatus ",orderStatus)
         // updateOrderStatus(OrderId,orderStatus)
     }
     updateData()
