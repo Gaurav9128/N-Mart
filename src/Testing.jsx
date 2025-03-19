@@ -54,13 +54,14 @@ const [allData,setAllData] = useState(null)
     const updateData = ()=>{
         const queryParams = getQueryParams(location.search);
         console.log("queryParams ",queryParams)
+        let OrderId
         setAllData(queryParams)
         try {
           const storedOrderId = localStorage.getItem('orderid');
           console.log("storedOrderId:", storedOrderId);
         
           // Parse if it's a valid JSON
-          const OrderId = storedOrderId ? JSON.parse(storedOrderId) : null;
+           OrderId = storedOrderId ? JSON.parse(storedOrderId) : null;
         
           console.log("OrderId:", OrderId);
         } catch (error) {
