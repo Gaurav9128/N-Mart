@@ -42,7 +42,7 @@ const [allData,setAllData] = useState(null)
       const docRef = doc(firestore, 'orderDetails', orderDoc.id);
 
       await updateDoc(docRef, {
-        paymentStatus: orderStatus
+        paymentStatus: orderStatus?.orderStatus
       });
 
     } catch (err) {
