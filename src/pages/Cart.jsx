@@ -193,8 +193,9 @@ const Cart = () => {
                         let orderid = data.id;
                         let linkUrl = data.payment_url.replace(/\n/g, ""); // Remove newlines
                         localStorage.setItem('orderid',JSON.stringify(orderid));
+                        console.log("orderid ",orderid)
                         console.log("linkUrl ", linkUrl);
-                        window.location.href = linkUrl;
+                        // window.location.href = linkUrl;
                     }
                 })
                 .catch((error) => {
