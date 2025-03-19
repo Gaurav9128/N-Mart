@@ -192,7 +192,7 @@ const Cart = () => {
                     if (data && data.payment_url) {
                         let orderid = data.id;
                         let linkUrl = data.payment_url.replace(/\n/g, ""); // Remove newlines
-                        localStorage.setItem('orderDetailsId',JSON.stringify(orderDetailsId));
+                        localStorage.setItem('orderid',JSON.stringify(orderid));
                         console.log("linkUrl ", linkUrl);
                         window.location.href = linkUrl;
                     }
