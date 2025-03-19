@@ -29,8 +29,9 @@ const [allData,setAllData] = useState(null)
     try {
       const ordersRef = collection(firestore, 'orderDetails');
       const q = query(ordersRef, where('orderId', '==', orderId));
+      console.log("q ",q)
       const querySnapshot = await getDocs(q);
-
+      console.log("querySnapshot ",querySnapshot)
       if (querySnapshot.empty) {
         console.error("Order not found for Order ID:", orderId);
         return;
@@ -43,7 +44,6 @@ const [allData,setAllData] = useState(null)
         paymentStatus: orderStatus
       });
 
-      console.log(`Order ID ${orderId} updated with status: ${orderStatus}`);
     } catch (err) {
       console.error("Error updating order status:", err);
     }
@@ -52,12 +52,15 @@ const [allData,setAllData] = useState(null)
   useEffect(()=>{
     const updateData = ()=>{
         const queryParams = getQueryParams(location.search);
+        console.log("queryParams ",queryParams)
         setAllData(queryParams)
         const storedOrderId = localStorage.getItem('orderid');
         const OrderId = JSON.parse(storedOrderId)
+
+        console.log("OrderId ",OrderId)
         const orderStatus = getOrderDetails(queryParams);
+        console.log("orderStatus ",orderStatus)
         updateOrderStatus(OrderId,orderStatus)
-        console.log("orderId orderStatus",OrderId,orderStatus);
     }
     updateData()
   })
