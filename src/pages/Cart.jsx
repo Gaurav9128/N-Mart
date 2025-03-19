@@ -194,7 +194,7 @@ const Cart = () => {
                         localStorage.setItem('orderid',JSON.stringify(randomId));
                         console.log("orderid ",randomId)
                         console.log("linkUrl ", linkUrl);
-                        // window.location.href = linkUrl;
+                        window.location.href = linkUrl;
                     }
                 })
                 .catch((error) => {

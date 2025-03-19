@@ -68,7 +68,7 @@ const [allData,setAllData] = useState(null)
         }
         
 
-        console.log("OrderId ",OrderId)
+        // console.log("OrderId ",OrderId)
         // const orderStatus = getOrderDetails(queryParams);
         // console.log("orderStatus ",orderStatus)
         // updateOrderStatus(OrderId,orderStatus)
