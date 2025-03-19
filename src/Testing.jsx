@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { firestore } from "./firebase/FirebaseConfig";
 
 
 const PaymentStatus = () => {
