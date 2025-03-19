@@ -21,9 +21,9 @@ const [allData,setAllData] = useState(null)
     if (queryParams?.data) {
       const params = new URLSearchParams(queryParams.data);
       const orderStatus = params.get('order_status');
-      return { orderId, orderStatus };
+      return { orderStatus };
     }
-    return { orderId: null, orderStatus: null };
+    return { orderStatus: null };
   }
   const updateOrderStatus = async (orderId, orderStatus) => {
     try {
@@ -70,7 +70,7 @@ const [allData,setAllData] = useState(null)
 
         const orderStatus = getOrderDetails(queryParams);
         console.log("orderStatus ",orderStatus)
-        // updateOrderStatus(OrderId,orderStatus)
+        updateOrderStatus(OrderId,orderStatus)
     }
     updateData()
   },[])
