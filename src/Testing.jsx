@@ -25,29 +25,30 @@ const [allData,setAllData] = useState(null)
     }
     return { orderId: null, orderStatus: null };
   }
-  const updateOrderStatus = async (orderId, orderStatus) => {
-    try {
-      const ordersRef = collection(firestore, 'orderDetails');
-      const q = query(ordersRef, where('orderId', '==', orderId));
-      console.log("q ",q)
-      const querySnapshot = await getDocs(q);
-      console.log("querySnapshot ",querySnapshot)
-      if (querySnapshot.empty) {
-        console.error("Order not found for Order ID:", orderId);
-        return;
-      }
+  // const updateOrderStatus = async (orderId, orderStatus) => {
+  //   try {
 
-      const orderDoc = querySnapshot.docs[0]; // Assuming orderId is unique
-      const docRef = doc(firestore, 'orderDetails', orderDoc.id);
+  //     const ordersRef = collection(firestore, 'orderDetails');
+  //     const q = query(ordersRef, where('orderId', '==', orderId));
+  //     console.log("q ",q)
+  //     const querySnapshot = await getDocs(q);
+  //     console.log("querySnapshot ",querySnapshot)
+  //     if (querySnapshot.empty) {
+  //       console.error("Order not found for Order ID:", orderId);
+  //       return;
+  //     }
 
-      await updateDoc(docRef, {
-        paymentStatus: orderStatus
-      });
+  //     const orderDoc = querySnapshot.docs[0]; // Assuming orderId is unique
+  //     const docRef = doc(firestore, 'orderDetails', orderDoc.id);
 
-    } catch (err) {
-      console.error("Error updating order status:", err);
-    }
-  };
+  //     await updateDoc(docRef, {
+  //       paymentStatus: orderStatus
+  //     });
+
+  //   } catch (err) {
+  //     console.error("Error updating order status:", err);
+  //   }
+  // };
 
   useEffect(()=>{
     const updateData = ()=>{
@@ -58,9 +59,9 @@ const [allData,setAllData] = useState(null)
         const OrderId = JSON.parse(storedOrderId)
 
         console.log("OrderId ",OrderId)
-        const orderStatus = getOrderDetails(queryParams);
+         const orderStatus = getOrderDetails(queryParams);
         console.log("orderStatus ",orderStatus)
-        updateOrderStatus(OrderId,orderStatus)
+        // updateOrderStatus(OrderId,orderStatus)
     }
     updateData()
   })
