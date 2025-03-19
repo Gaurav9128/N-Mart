@@ -79,12 +79,12 @@ const [allData,setAllData] = useState(null)
           </tr>
         </thead>
         <tbody>
-          {Object.entries(allData).map(([key, value]) => (
+          {/* {Object.entries(allData).map(([key, value]) => (
             <tr key={key}>
               <td style={{ fontWeight: "bold" }}>{key}</td>
               <td>{value}</td>
             </tr>
-          ))}
+          ))} */}
         </tbody>
       </table>
     </div>
