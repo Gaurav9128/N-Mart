@@ -56,6 +56,7 @@ const [allData,setAllData] = useState(null)
         console.log("queryParams ",queryParams)
         setAllData(queryParams)
         const storedOrderId = localStorage.getItem('orderid');
+        console.log("storedOrderId ",storedOrderId)
         const OrderId = JSON.parse(storedOrderId)
 
         console.log("OrderId ",OrderId)
