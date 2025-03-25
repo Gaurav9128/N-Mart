@@ -26,13 +26,13 @@ const CartTotal = ({ cartItems, onCheckout }) => {
         setSavings(totalSavings);
     }, [cartItems]);
 
-    useEffect(() => {
-        if (cartTotal < 5000) {
-            setWarning('Warning: Total amount exceeds ₹5000');
-        } else {
-            setWarning('');
-        }
-    }, [cartTotal]);
+    // useEffect(() => {
+    //     if (cartTotal < 5000) {
+    //         setWarning('Warning: Total amount exceeds ₹5000');
+    //     } else {
+    //         setWarning('');
+    //     }
+    // }, [cartTotal]);
 
     return (
         <div className="mt-6 h-full md:mt-0 w-full lg:w-1/4">
@@ -58,13 +58,12 @@ const CartTotal = ({ cartItems, onCheckout }) => {
                     </div>
                 )}
             </div>
-            {(cartTotal >= 5000) && <button
+            <button
                 className="mt-6 w-full rounded-md bg-blue-500 py-2 font-medium text-white hover:bg-blue-400"
-                disabled={cartTotal < 5000}
                 onClick={onCheckout}
             >
                 PROCEED TO CHECKOUT
-            </button>}
+            </button>
         </div>
     );
 }
