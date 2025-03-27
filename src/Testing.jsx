@@ -7,75 +7,68 @@ import { firestore } from "./firebase/FirebaseConfig";
 const PaymentStatus = () => {
   const location = useLocation();
 const [allData,setAllData] = useState(null)
-  // Function to parse query parameters
-  const getQueryParams = (queryString) => {
-    const params = new URLSearchParams(queryString);
-    const entries = {};
-    for (const [key, value] of params) {
-      entries[key] = decodeURIComponent(value || "N/A"); // Decode & handle empty values
-    }
-    return entries;
-    
-  };
 
-  function getOrderDetails(queryParams) {
+  // Function to parse query parameters
+  const getOrderDetails = (queryParams) => {
     if (queryParams?.data) {
       const params = new URLSearchParams(queryParams.data);
       const orderStatus = params.get('order_status');
-      return { orderStatus };
+      const transactionId = params.get('transaction_id'); // Extract TransactionID
+      return { orderStatus, transactionId };
     }
-    return { orderStatus: null };
-  }
-  const updateOrderStatus = async (orderId, orderStatus) => {
+    return { orderStatus: null, transactionId: null };
+  };
+  
+  const updateOrderStatus = async (orderId, orderStatus, transactionId) => {
     try {
-
       const ordersRef = collection(firestore, 'orderDetails');
       const q = query(ordersRef, where('orderId', '==', orderId));
-      console.log("q ",q)
       const querySnapshot = await getDocs(q);
-      console.log("querySnapshot ",querySnapshot)
+  
       if (querySnapshot.empty) {
         console.error("Order not found for Order ID:", orderId);
         return;
       }
-
-      const orderDoc = querySnapshot.docs[0]; // Assuming orderId is unique
+  
+      const orderDoc = querySnapshot.docs[0]; 
       const docRef = doc(firestore, 'orderDetails', orderDoc.id);
-
+  
       await updateDoc(docRef, {
-        paymentStatus: orderStatus?.orderStatus
+        paymentStatus: orderStatus?.orderStatus,
+        transactionId: transactionId || "N/A" // Store TransactionID
       });
-
+  
+      console.log("Order updated with Transaction ID:", transactionId);
+  
     } catch (err) {
       console.error("Error updating order status:", err);
     }
   };
-
-  useEffect(()=>{
-    const updateData = ()=>{
-        const queryParams = getQueryParams(location.search);
-        console.log("queryParams ",queryParams)
-        let OrderId
-        setAllData(queryParams)
-        try {
-          const storedOrderId = localStorage.getItem('orderid');
-          console.log("storedOrderId:", storedOrderId);
-        
-          // Parse if it's a valid JSON
-           OrderId = storedOrderId ? JSON.parse(storedOrderId) : null;
-        
-          console.log("OrderId:", OrderId);
-        } catch (error) {
-          console.error("Error parsing orderid:", error);
-        }
-        
-
-        const orderStatus = getOrderDetails(queryParams);
-        console.log("orderStatus ",orderStatus)
-        updateOrderStatus(OrderId,orderStatus)
-    }
-    updateData()
-  },[])
+  
+  useEffect(() => {
+    const updateData = () => {
+      const queryParams = getQueryParams(location.search);
+      console.log("queryParams ", queryParams);
+      setAllData(queryParams);
+  
+      let OrderId;
+      try {
+        const storedOrderId = localStorage.getItem('orderid');
+        OrderId = storedOrderId ? JSON.parse(storedOrderId) : null;
+        console.log("OrderId:", OrderId);
+      } catch (error) {
+        console.error("Error parsing orderid:", error);
+      }
+  
+      const { orderStatus, transactionId } = getOrderDetails(queryParams);
+      console.log("OrderStatus:", orderStatus, "TransactionID:", transactionId);
+  
+      updateOrderStatus(OrderId, orderStatus, transactionId);
+    };
+  
+    updateData();
+  }, []);
+  
   // Extract query params from URL
  
   
