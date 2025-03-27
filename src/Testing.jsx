@@ -58,7 +58,7 @@ const PaymentStatus = () => {
       try {
         const storedOrderId = localStorage.getItem("orderid");
         OrderId = storedOrderId ? JSON.parse(storedOrderId) : null;
-        console.log("OrderId:", OrderId);
+        // console.log("OrderId:", OrderId);
       } catch (error) {
         console.error("Error parsing orderid:", error);
       }
@@ -67,10 +67,10 @@ const PaymentStatus = () => {
       updateOrderStatus(OrderId, orderStatus);
 
       // Redirect to home page if payment is successful or cancelled
-      if (orderStatus.orderStatus === "success" || orderStatus.orderStatus === "failed") {
+      if (orderStatus.orderStatus === "success" || orderStatus.orderStatus === "Aborted") {
         setTimeout(() => {
-          window.location.replace("https://www.n-mart.in/"); // Redirect to home page
-        }, 1000); // Wait for 2 seconds before redirecting
+          window.open("https://www.n-mart.in/", "_self");
+        }, 2000); // Wait for 2 seconds before redirecting
       }
     };
     updateData();
