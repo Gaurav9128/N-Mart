@@ -31,9 +31,9 @@ const [allData,setAllData] = useState(null)
 
       const ordersRef = collection(firestore, 'orderDetails');
       const q = query(ordersRef, where('orderId', '==', orderId));
-      console.log("q ",q)
+      // console.log("q ",q)
       const querySnapshot = await getDocs(q);
-      console.log("querySnapshot ",querySnapshot)
+      // console.log("querySnapshot ",querySnapshot)
       if (querySnapshot.empty) {
         console.error("Order not found for Order ID:", orderId);
         return;
@@ -54,12 +54,12 @@ const [allData,setAllData] = useState(null)
   useEffect(()=>{
     const updateData = ()=>{
         const queryParams = getQueryParams(location.search);
-        console.log("queryParams ",queryParams)
+        // console.log("queryParams ",queryParams)
         let OrderId
         setAllData(queryParams)
         try {
           const storedOrderId = localStorage.getItem('orderid');
-          console.log("storedOrderId:", storedOrderId);
+          // console.log("storedOrderId:", storedOrderId);
         
           // Parse if it's a valid JSON
            OrderId = storedOrderId ? JSON.parse(storedOrderId) : null;
@@ -71,7 +71,7 @@ const [allData,setAllData] = useState(null)
         
 
         const orderStatus = getOrderDetails(queryParams);
-        console.log("orderStatus ",orderStatus)
+        // console.log("orderStatus ",orderStatus)
         updateOrderStatus(OrderId,orderStatus)
     }
     updateData()
@@ -82,12 +82,12 @@ const [allData,setAllData] = useState(null)
 
   return (
     <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-      <h2>Payment Status</h2>
+      <h2>Thank You So much</h2>
       <table border="1" cellPadding="10" style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
           <tr>
-            <th>Parameter</th>
-            <th>Value</th>
+            <th>Visit</th>
+            <th>again n-mart</th>
           </tr>
         </thead>
         <tbody>
