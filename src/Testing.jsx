@@ -69,8 +69,8 @@ const PaymentStatus = () => {
       // Redirect to home page if payment is successful or cancelled
       if (orderStatus.orderStatus === "success" || orderStatus.orderStatus === "failed") {
         setTimeout(() => {
-          window.location.href = "https://www.n-mart.in/"; // Redirect to home page
-        }, 2000); // Wait for 2 seconds before redirecting
+          window.location.replace("https://www.n-mart.in/"); // Redirect to home page
+        }, 1000); // Wait for 2 seconds before redirecting
       }
     };
     updateData();
