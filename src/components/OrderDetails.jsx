@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, updateDoc, query, where } from 'firebase/firestore';
 import { firestore } from '../firebase/FirebaseConfig';
 import * as XLSX from 'xlsx';
 
@@ -43,7 +43,10 @@ const OrderDetails = () => {
 
   const fetchOrderDetails = async () => {
     try {
-      const querySnapshot = await getDocs(collection(firestore, 'orderDetails'));
+      const ordersRef = collection(firestore, 'orderDetails');
+      const q = query(ordersRef, where("paymentStatus", "not-in", ["Pending", "Aborted"])); // Exclude "Aborted" & "Pending"
+      const querySnapshot = await getDocs(q);
+
       const ordersArray = await Promise.all(querySnapshot.docs.map(async (doc, index) => {
         const orderData = doc.data();
         if (orderData.status === 'delivered') return null;
@@ -56,7 +59,7 @@ const OrderDetails = () => {
           userAddress: userDetails ? userDetails.address : 'No address available',
         };
       }));
-      setOrders(ordersArray.filter(order => (order !== null && order.paymentStatus !== "Pending")));
+      setOrders(ordersArray.filter(order => order !== null));
     } catch (err) {
       console.error("Error fetching order details:", err);
     }
@@ -120,7 +123,9 @@ const OrderDetails = () => {
                   </td>
                   <td className="border border-gray-300 px-4 py-2">{order.cartTotal ? order.cartTotal.toFixed(2) : 'N/A'}</td>
                   <td className="border border-gray-300 px-4 py-2">{order.couponStatus}</td>
-                  <td className="border border-gray-300 px-4 py-2">{order.transactionId || 'N/A'}</td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {order.transactionId && order.transactionId !== "N/A" ? order.transactionId : 'No Transaction ID'}
+                  </td>
                   <td className="border border-gray-300 px-4 py-2">
                     <input
                       type="checkbox"
