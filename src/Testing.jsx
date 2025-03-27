@@ -67,7 +67,7 @@ const PaymentStatus = () => {
       updateOrderStatus(OrderId, orderStatus);
 
       // Redirect to home page if payment is successful or cancelled
-      if (orderStatus.orderStatus === "success" || orderStatus.orderStatus === "Aborted") {
+      if (orderStatus.orderStatus === "Success" || orderStatus.orderStatus === "Aborted") {
         setTimeout(() => {
           window.open("https://www.n-mart.in/", "_self");
         }, 2000); // Wait for 2 seconds before redirecting

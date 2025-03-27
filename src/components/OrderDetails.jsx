@@ -99,7 +99,7 @@ const OrderDetails = () => {
               <th className="border border-gray-300 px-4 py-2">Items</th>
               <th className="border border-gray-300 px-4 py-2">Cart Total</th>
               <th className="border border-gray-300 px-4 py-2">Coupon Status</th>
-              <th className="border border-gray-300 px-4 py-2">Transaction ID</th>
+              <th className="border border-gray-300 px-4 py-2">Payment</th>
               <th className="border border-gray-300 px-4 py-2">Delivered</th>
             </tr>
           </thead>
@@ -124,7 +124,7 @@ const OrderDetails = () => {
                   <td className="border border-gray-300 px-4 py-2">{order.cartTotal ? order.cartTotal.toFixed(2) : 'N/A'}</td>
                   <td className="border border-gray-300 px-4 py-2">{order.couponStatus}</td>
                   <td className="border border-gray-300 px-4 py-2">
-                    {order.transactionId && order.transactionId !== "N/A" ? order.transactionId : 'No Transaction ID'}
+                    {order.transactionId && order.transactionId !== "N/A" ? order.transactionId : 'Done'}
                   </td>
                   <td className="border border-gray-300 px-4 py-2">
                     <input
