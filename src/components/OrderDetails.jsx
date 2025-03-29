@@ -44,7 +44,7 @@ const OrderDetails = () => {
   const fetchOrderDetails = async () => {
     try {
       const ordersRef = collection(firestore, 'orderDetails');
-      const q = query(ordersRef, where("paymentStatus", "not-in", ["Pending", "Aborted"])); // Exclude "Aborted" & "Pending"
+      const q = query(ordersRef, where("paymentStatus", "not-in", ["Pending", "Aborted","Failure"])); // Exclude "Aborted" & "Pending"
       const querySnapshot = await getDocs(q);
 
       const ordersArray = await Promise.all(querySnapshot.docs.map(async (doc, index) => {
