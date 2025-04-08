@@ -44,7 +44,8 @@ const FooterComponent = () => {
         </div>
         <Footer.Divider />
         <div className="w-full sm:flex sm:items-center sm:justify-between">
-          <Footer.Copyright href="#" by="SG™" year={2024} />
+          <Footer.Copyright href="#" by="Gaurav Jain™" year={2024} />
+          <span className="text-sm text-gray-500 sm:text-center dark:text-gray-400">A Unit of Neelkamal Industries LLP </span>
           <div className="mt-4 flex space-x-6 sm:mt-0 sm:justify-center">
           </div>
         </div>
