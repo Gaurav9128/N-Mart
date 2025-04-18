@@ -7,7 +7,6 @@ const PaymentStatus = () => {
   const location = useLocation();
   const [allData, setAllData] = useState(null);
 
-  // Function to parse query parameters
   const getQueryParams = (queryString) => {
     const params = new URLSearchParams(queryString);
     const entries = {};
@@ -44,6 +43,31 @@ const PaymentStatus = () => {
         paymentStatus: orderStatus?.orderStatus,
       });
 
+      // ✅ WHATSAPP MESSAGE AFTER SUCCESSFUL PAYMENT
+      if (orderStatus?.orderStatus === "Success") {
+        const orderData = orderDoc.data();
+        const customerName = orderData.customerName || "Customer";
+        const phone = orderData.phone || "N/A";
+        const items = orderData.items
+          ? orderData.items.map(item => `${item.name} x${item.quantity}`).join(", ")
+          : "Items not listed";
+        const total = orderData.totalAmount || "N/A";
+
+        const adminNumber = "9119129138"; // replace with real admin number (no +)
+
+        const message = `🛒 *New Order!*
+👤 Name: ${customerName}
+📱 Phone: ${phone}
+📦 Items: ${items}
+💰 Total: ₹${total}`;
+
+        const encodedMessage = encodeURIComponent(message);
+        const whatsappURL = `https://wa.me/${adminNumber}?text=${encodedMessage}`;
+
+        // 👇 Open WhatsApp in new tab
+        window.open(whatsappURL, "_blank");
+      }
+
     } catch (err) {
       console.error("Error updating order status:", err);
     }
@@ -58,7 +82,6 @@ const PaymentStatus = () => {
       try {
         const storedOrderId = localStorage.getItem("orderid");
         OrderId = storedOrderId ? JSON.parse(storedOrderId) : null;
-        // console.log("OrderId:", OrderId);
       } catch (error) {
         console.error("Error parsing orderid:", error);
       }
@@ -66,11 +89,10 @@ const PaymentStatus = () => {
       const orderStatus = getOrderDetails(queryParams);
       updateOrderStatus(OrderId, orderStatus);
 
-      // Redirect to home page if payment is successful or cancelled
       if (orderStatus.orderStatus === "Success" || orderStatus.orderStatus === "Aborted") {
         setTimeout(() => {
           window.open("https://www.n-mart.in/", "_self");
-        }, 2000); // Wait for 2 seconds before redirecting
+        }, 2000); // Wait for 5 seconds before redirecting to home
       }
     };
     updateData();
@@ -78,7 +100,7 @@ const PaymentStatus = () => {
 
   return (
     <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-      <h2>Thank You So much</h2>
+      <h2>✅ Thank You So much!</h2>
       <p>Redirecting you to N-Mart homepage...</p>
       <table border="1" cellPadding="10" style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
