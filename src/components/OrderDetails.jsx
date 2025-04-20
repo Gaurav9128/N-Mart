@@ -44,7 +44,7 @@ const OrderDetails = () => {
   const fetchOrderDetails = async () => {
     try {
       const ordersRef = collection(firestore, 'orderDetails');
-      const q = query(ordersRef, where("paymentStatus", "not-in", ["Pending", "Aborted","Failure"])); // Exclude "Aborted" & "Pending"
+      const q = query(ordersRef, where("paymentStatus", "not-in", ["Pending", "Aborted", "Failure"])); // Exclude "Aborted" & "Pending"
       const querySnapshot = await getDocs(q);
 
       const ordersArray = await Promise.all(querySnapshot.docs.map(async (doc, index) => {
@@ -124,8 +124,13 @@ const OrderDetails = () => {
                   <td className="border border-gray-300 px-4 py-2">{order.cartTotal ? order.cartTotal.toFixed(2) : 'N/A'}</td>
                   <td className="border border-gray-300 px-4 py-2">{order.couponStatus}</td>
                   <td className="border border-gray-300 px-4 py-2">
-                    {order.transactionId && order.transactionId !== "N/A" ? order.transactionId : 'Done'}
+                    {order.couponStatus === "Valid"
+                      ? ""
+                      : (order.transactionId && order.transactionId !== "N/A"
+                        ? order.transactionId
+                        : 'Done')}
                   </td>
+
                   <td className="border border-gray-300 px-4 py-2">
                     <input
                       type="checkbox"
