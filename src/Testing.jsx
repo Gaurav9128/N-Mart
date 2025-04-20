@@ -53,8 +53,7 @@ const PaymentStatus = () => {
           : "Items not listed";
         const total = orderData.totalAmount || "N/A";
 
-        const adminNumber = "9119129138"; // replace with real admin number (no +)
-
+        const adminNumber = "9119129138"; // Replace with actual number
         const message = `🛒 *New Order!*
 👤 Name: ${customerName}
 📱 Phone: ${phone}
@@ -64,8 +63,20 @@ const PaymentStatus = () => {
         const encodedMessage = encodeURIComponent(message);
         const whatsappURL = `https://wa.me/${adminNumber}?text=${encodedMessage}`;
 
-        // 👇 Open WhatsApp in new tab
+        // ✅ 1. Open WhatsApp in new tab
         window.open(whatsappURL, "_blank");
+
+        // ✅ 2. After 2 seconds, redirect to N-Mart homepage
+        setTimeout(() => {
+          window.open("https://www.n-mart.in/", "_self");
+        }, 2000);
+      }
+
+      // 🟠 Optional: Redirect on aborted too
+      else if (orderStatus?.orderStatus === "Aborted") {
+        setTimeout(() => {
+          window.open("https://www.n-mart.in/", "_self");
+        }, 2000);
       }
 
     } catch (err) {
@@ -88,12 +99,6 @@ const PaymentStatus = () => {
 
       const orderStatus = getOrderDetails(queryParams);
       updateOrderStatus(OrderId, orderStatus);
-
-      if (orderStatus.orderStatus === "Success" || orderStatus.orderStatus === "Aborted") {
-        setTimeout(() => {
-          window.open("https://www.n-mart.in/", "_self");
-        }, 2000); // Wait for 5 seconds before redirecting to home
-      }
     };
     updateData();
   }, []);
