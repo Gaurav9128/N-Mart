@@ -59,7 +59,7 @@ const CartTotal = ({ cartItems, onCheckout }) => {
                 )}
             </div>
             {(cartTotal >= 5000) && <button
-                className="mt-6 w-full rounded-md bg-blue-400 py-2 font-medium text-white hover:bg-blue-400"
+                className="mt-6 w-full rounded-md bg-blue-500 py-2 font-medium text-white hover:bg-blue-400"
                 disabled={cartTotal < 5000}
                 onClick={onCheckout}
             >
