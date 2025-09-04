@@ -27,7 +27,7 @@ const CartTotal = ({ cartItems, onCheckout }) => {
     }, [cartItems]);
 
     useEffect(() => {
-        if (cartTotal < 5000) {
+        if (cartTotal >= 5000) {
             setWarning('Warning: Total amount exceeds ₹5000');
         } else {
             setWarning('');
