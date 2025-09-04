@@ -27,7 +27,7 @@ const CartTotal = ({ cartItems, onCheckout }) => {
     }, [cartItems]);
 
     useEffect(() => {
-        if (cartTotal < 1) {
+        if (cartTotal < 2) {
             setWarning('Warning: Total amount exceeds ₹500');
         } else {
             setWarning('');
@@ -58,9 +58,9 @@ const CartTotal = ({ cartItems, onCheckout }) => {
                     </div>
                 )}
             </div>
-            {(cartTotal >= 1) && <button
+            {(cartTotal >= 2) && <button
                 className="mt-6 w-full rounded-md bg-blue-500 py-2 font-medium text-white hover:bg-blue-400"
-                disabled={cartTotal < 1}
+                disabled={cartTotal < 2}
                 onClick={onCheckout}
             >
                 PROCEED TO CHECKOUT
