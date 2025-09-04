@@ -7,7 +7,7 @@ import CartItem from '../components/CartItem';
 import { useNavigate } from 'react-router-dom';
 import FooterComponent from '../components/FooterComponent';
 import { UserAuth } from '../hooks/useAuth';
-import axios from 'axios'; // Use ES6 import for axios
+import axios from 'axios';
 
 const Cart = () => {
     const userId = localStorage.getItem("userId");
@@ -22,6 +22,7 @@ const Cart = () => {
     useEffect(() => {
         getCartItems();
     }, []);
+
     useEffect(() => {
         const fetchOrderStatus = async () => {
             const queryParams = new URLSearchParams(window.location.search);
@@ -31,7 +32,6 @@ const Cart = () => {
             console.log('Response Status is : ', responseStatus)
 
             if (status && transactionID) {
-                // Fetch existing order with the same transaction ID
                 const existingOrderQuery = query(
                     collection(firestore, 'orderDetails'),
                     where('transactionId', '==', transactionID)
@@ -41,17 +41,12 @@ const Cart = () => {
                     const orderData = localStorage.getItem('orderDetails');
                     if (orderData) {
                         const orderDetails = JSON.parse(orderData);
-                        const storedOrderDetails = localStorage.getItem('orderDetails');
                         const storedOrderId = localStorage.getItem('orderid');
-                        const orderDetailsTemp = JSON.parse(storedOrderDetails);
-                        const cartTotal = orderDetailsTemp.cartTotal;
-                        const orderId = storedOrderId;
+                        const cartTotal = orderDetails.cartTotal;
                         localStorage.removeItem('orderDetails');
                         localStorage.removeItem('orderid');
                         await clearCart();
-                        // alert('Your Order was Successfully Placed');
-                        alert(`Your Order was Successfully Placed. Your Order ID: ${orderId}, Cart Total: ${cartTotal}`);
-
+                        alert(`Your Order was Successfully Placed. Your Order ID: ${storedOrderId}, Cart Total: ${cartTotal}`);
                     } else {
                         console.error("Order details are missing from localStorage.");
                     }
@@ -61,16 +56,9 @@ const Cart = () => {
                     alert('Operation AUTHORIZATION_FAILED');
                 }
             }
-
-            // Redirect to the cart page
-
         };
-
         fetchOrderStatus();
-    }, []); // Empty dependencies array to ensure it runs only once
-
-    // Empty dependencies array to ensure it runs only once
-
+    }, []);
 
     const getCartItems = async () => {
         try {
@@ -86,7 +74,7 @@ const Cart = () => {
                 }));
                 setCartItems(cartItemsArray);
             } else {
-                setCartItems([]); // Clear the cart items if no cart is found
+                setCartItems([]);
             }
         } catch (err) {
             console.error("Error fetching cart items:", err);
@@ -104,17 +92,15 @@ const Cart = () => {
     const handleCouponCodeChange = (e) => {
         setCouponCode(e.target.value);
     };
+
     function generateRandomId() {
         return Math.floor(10000000 + Math.random() * 90000000).toString();
     }
+
     const handleCheckout = async () => {
         console.log("handleCheckout function called");
 
         try {
-            // Define currentUrl here
-            const currentUrl = window.location.href;
-
-            // Fetch user details using userId
             const userDoc = await getDoc(doc(firestore, 'users', userId));
             if (!userDoc.exists()) {
                 console.error('User not found');
@@ -124,7 +110,6 @@ const Cart = () => {
             const userData = userDoc.data();
             const { firstName, lastName, mobile, email } = userData;
 
-            // Ensure all fields in the order items are defined
             const orderListItems = cartItems.map(item => ({
                 id: item.id || '',
                 title: item.productTitle || '',
@@ -133,7 +118,6 @@ const Cart = () => {
                 pricePerPiece: item.pricePerPiece || 0,
                 discountPrice: item.discountPrice || 0
             }));
-
 
             const couponStatus = isCouponValid ? 'Valid' : 'Invalid';
 
@@ -144,11 +128,9 @@ const Cart = () => {
                 cartTotal: cartTotal,
                 savings: savings
             };
-            // console.log("after ",orderDetails)
-            localStorage.setItem("orderDetails", JSON.stringify(orderDetails))
-            const orderDetails1 = localStorage.getItem('orderDetails')
+            localStorage.setItem("orderDetails", JSON.stringify(orderDetails));
+
             const orderDate = Timestamp.now();
-            console.log("order function  ",JSON.parse(orderDetails1));
             const randomId = generateRandomId();
             const orderDetailsId = await addDoc(collection(firestore, 'orderDetails'), {
                 ...orderDetails,
@@ -157,63 +139,49 @@ const Cart = () => {
                 orderDate: orderDate,
                 orderId: randomId
             });
-            console.log("orderDetailsId ",orderDetailsId)
+
             if (isCouponValid) {
-                // Save order details directly without payment, generating a new document with a unique ID
                 await updateDoc(doc(firestore, 'orderDetails', orderDetailsId.id), {
                     paymentStatus: 'Credit Sale'
                 });
-                const cartQuery = query(collection(firestore, "carts"), where("userId", "==", userId));
-                const cartSnapshot = await getDocs(cartQuery);
-                clearCart();
+                await clearCart();
                 alert('Your Order Successfully Placed');
             } else {
-                console.log("payment gateway data ", cartTotal);
-                fetch('https://nmart-node.onrender.com/initiate-payment', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        amount: cartTotal,
-                        name: firstName + " " + lastName,
-                        email: email ? email : '',
-                        phone: mobile
-                    })
-                })
-                .then((response) => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then((data) => {
-                    console.log('Response data:', data);  // Handle the JSON data
-                    if (data && data.payment_url) {
-                        let linkUrl = data.payment_url.replace(/\n/g, ""); // Remove newlines
-                        localStorage.setItem('orderid',JSON.stringify(randomId));
-                        console.log("orderid ",randomId)
-                        console.log("linkUrl ", linkUrl);
-                        window.location.href = linkUrl;
-                    }
-                })
-                .catch((error) => {
-                    console.error('There was a problem with the fetch operation:', error);
-                });
-            }
-            
-            
+                console.log("Initiating payment for amount:", cartTotal);
+                const payload = {
+                    amount: Number(cartTotal),
+                    name: `${firstName || ''} ${lastName || ''}`.trim(),
+                    email: email || "test@example.com",
+                    phone: mobile || "9999999999"
+                };
 
-            // Clear the cart by deleting the items
-            // Update the state to clear the cart in the UI
+                console.log("Sending payload:", payload);
+
+                const response = await axios.post(
+                    "https://nmart-node.onrender.com/initiate-payment",
+                    payload,
+                    { headers: { "Content-Type": "application/json" } }
+                );
+
+                console.log("Payment response:", response.data);
+
+                if (response.data && response.data.payment_url) {
+                    let linkUrl = response.data.payment_url.replace(/\n/g, "");
+                    localStorage.setItem('orderid', JSON.stringify(randomId));
+                    window.location.href = linkUrl;
+                } else {
+                    alert("Payment initiation failed. Please try again.");
+                }
+            }
+
             setCartItems([]);
             setCartTotal(0);
             setSavings(0);
-
-            // Optionally, re-fetch cart items to ensure they are cleared
             getCartItems();
+
         } catch (err) {
-            console.error('Error creating order:', err);
+            console.error('Error during checkout:', err.response?.data || err.message);
+            alert("Something went wrong while processing your order.");
         }
     };
 
@@ -229,18 +197,11 @@ const Cart = () => {
                 deleteDoc(doc(firestore, 'carts', currdoc.id, "items", itemDoc.id))
             );
             await Promise.all(deletePromises);
-
             console.log("Cart items successfully cleared.");
-        } else {
-            console.log("No cart found to clear.");
         }
-
-        // Update the state to clear the cart in the UI
         setCartItems([]);
         setCartTotal(0);
         setSavings(0);
-
-        // Optionally, re-fetch cart items to ensure they are cleared
         getCartItems();
     };
 
@@ -250,29 +211,23 @@ const Cart = () => {
             const couponSnap = await getDoc(couponRef);
             if (couponSnap.exists()) {
                 const couponData = couponSnap.data();
-                console.log('data', couponData.isActive)
                 const currentDate = new Date();
                 const startDate = new Date(couponData.startDate);
                 const endDate = new Date(couponData.endDate);
 
                 if (currentDate >= startDate && currentDate <= endDate && couponData.isActive) {
                     setIsCouponValid(true);
-                    console.log('Coupon is valid');
                 } else {
                     setIsCouponValid(false);
-                    console.log('Coupon is expired');
                 }
             } else {
                 setIsCouponValid(false);
-                console.log('Invalid coupon code');
             }
         } catch (err) {
             console.error('Error validating coupon:', err);
             setIsCouponValid(false);
         }
     };
-
-
 
     useEffect(() => {
         const total = cartItems.reduce((acc, currItem) => {
@@ -324,11 +279,7 @@ const Cart = () => {
                 :
                 <div className='mx-auto w-11/12 max-w-screen-2xl flex flex-col items-center justify-center gap-4 mb-10'>
                     <svg className='h-32 w-auto' viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
-                        <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
-                        <g id="SVGRepo_iconCarrier">
-                            <path d="M21 5L19 12H7.37671M20 16H8L6 3H3M11 3L13.5 5.5M13.5 5.5L16 8M13.5 5.5L16 3M13.5 5.5L11 8M9 20C9 20.5523 8.55228 21 8 21C7.44772 21 7 20.5523 7 20C7 19.4477 7.44772 19 8 19C8.55228 19 9 19.4477 9 20ZM20 20C20 20.5523 19.5523 21 19 21C18.4477 21 18 20.5523 18 20C18 19.4477 18.4477 19 19 19C19.5523 19 20 19.4477 20 20Z" stroke="#317ad8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
-                        </g>
+                        <path d="M21 5L19 12H7.37671M20 16H8L6 3H3M11 3L13.5 5.5M13.5 5.5L16 8M13.5 5.5L16 3M13.5 5.5L11 8M9 20C9 20.5523 8.55228 21 8 21C7.44772 21 7 20.5523 7 20C7 19.4477 7.44772 19 8 19C8.55228 19 9 19.4477 9 20ZM20 20C20 20.5523 19.5523 21 19 21C18.4477 21 18 20.5523 18 20C18 19.4477 18.4477 19 19 19C19.5523 19 20 19.4477 20 20Z" stroke="#317ad8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
                     </svg>
                     <h1 className='text-md sm:text-2xl font-medium'>No items in your cart</h1>
                     <p className='text-sm text-gray-500 font-normal'>Browse from our wide variety of products & exciting offers</p>
