@@ -1,57 +1,46 @@
-import React from 'react'
-import { Footer } from 'flowbite-react';
+import React from "react";
 
 const FooterComponent = () => {
   return (
-    <Footer container className=' border-t-2'>
-      <div className="w-full bg-white">
-        <div className="grid w-full md:grid-cols-4">
-          <div className='col-span-1'>
-            <img className='w-32 h-auto' src="https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2Fmartlogo.jpeg?alt=media&token=ee6e2494-2792-4ff4-9219-f9de328d566f" />
-            <div className='flex gap-2'>
-            <img className='w-32 h-auto' src="https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2Fappstore.svg?alt=media&token=847b3d40-1e77-4976-970e-f9c86e5883d5" />
-            <img className='w-32 h-auto' src="https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2Fplaystore.svg?alt=media&token=5699433f-6e9d-4d34-9321-cf0cc87e4699" />
-            </div>
-          </div>
-          <div></div>
-          <div className="col-span-2 grid grid-cols-2 gap-8 sm:mt-4 sm:grid-cols-3 sm:gap-6">
-            <div>
-              <Footer.Title title="FAQs" />
-              <Footer.LinkGroup col>
-                <Footer.Link href="/privacy-policy">Privacy Policy</Footer.Link>
-                <Footer.Link href="/terms-condition">Terms & Conditions</Footer.Link>
-              </Footer.LinkGroup>
-            </div>
-            <div>
-              <Footer.Title title="Follow us" />
-              <Footer.LinkGroup>
-                <Footer.Link href="#">
-                  <img className='w-6 h-auto' src='https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2Ffacebook.svg?alt=media&token=074ee693-5cec-43b3-a8d3-c516825e4391' />
-                </Footer.Link>
-                <Footer.Link href="#">
-                  <img className='w-6 h-auto' src='https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2Finstagram.svg?alt=media&token=5291bf6d-489c-40db-977e-bdb5f5caa8f0' />
-                </Footer.Link>
-              </Footer.LinkGroup>
-            </div>
-            <div>
-              <Footer.Title title="Others" />
-              <Footer.LinkGroup col>
-              <Footer.Link href="https://wa.me/919829179622">Contact Us</Footer.Link>
-                <Footer.Link href="/About-Us">About Us</Footer.Link>
-              </Footer.LinkGroup>
-            </div>
+    <footer className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-10 px-6 rounded-t-2xl">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+        
+        {/* Left Section - Mobile App */}
+        <div>
+          <h2 className="text-xl font-semibold mb-3">Get the Mobile App</h2>
+          <p className="mb-4">Download the app for a seamless shopping experience</p>
+          <div className="flex gap-4">
+            <img
+              className="h-12 cursor-pointer"
+              src="https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2Fappstore.svg?alt=media&token=847b3d40-1e77-4976-970e-f9c86e5883d5"
+              alt="App Store"
+            />
+            <img
+              className="h-12 cursor-pointer"
+              src="https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2Fplaystore.svg?alt=media&token=5699433f-6e9d-4d34-9321-cf0cc87e4699"
+              alt="Google Play"
+            />
           </div>
         </div>
-        <Footer.Divider />
-        <div className="w-full sm:flex sm:items-center sm:justify-between">
-          <Footer.Copyright href="#" by="Gaurav Jain™" year={2024} />
-          <span className="text-sm text-gray-500 sm:text-center dark:text-gray-400">A Unit of Neelkamal Industries LLP </span>
-          <div className="mt-4 flex space-x-6 sm:mt-0 sm:justify-center">
-          </div>
-        </div>
-      </div>
-    </Footer>
-  )
-}
 
-export default FooterComponent
+        {/* Right Section - Newsletter */}
+        <div>
+          <h2 className="text-xl font-semibold mb-3">Newsletter</h2>
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <input
+              type="email"
+              placeholder="Enter your email address"
+              className="p-3 rounded-lg w-full sm:w-2/3 text-black outline-none"
+            />
+            <button className="bg-white text-blue-600 font-semibold px-6 py-3 rounded-lg hover:bg-gray-100 w-full sm:w-auto">
+              Sign Up
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </footer>
+  );
+};
+
+export default FooterComponent;
