@@ -185,6 +185,7 @@ const Product = (props) => {
           }
         }
         getCartTotal();
+        alert("✅ Product added in cart!");
 
       } else {
         alert("Sign in first");
