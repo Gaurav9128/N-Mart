@@ -264,7 +264,7 @@ const Cart = () => {
                         <div className='grid grid-cols-8 w-full mx-4 mb-4 text-gray-500 font-medium'>
                             <p className='hidden lg:block col-span-4'>Product</p>
                             <p className='hidden lg:block col-span-1 text-center'>You Pay</p>
-                            <p className='hidden lg:block col-span-1 text-center'>You Save</p>
+{/*                             <p className='hidden lg:block col-span-1 text-center'>You Save</p> */}
                             <p className='hidden lg:block col-span-1 text-center'>No. of items</p>
                             <p className='hidden lg:block col-span-1'></p>
                         </div>
