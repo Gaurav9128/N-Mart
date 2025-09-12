@@ -100,7 +100,7 @@ const CartItem = (props) => {
                         <p className="mt-1 text-xs md:text-xl text-gray-600">Variant: <span className=' text-black font-medium'>{props.product.variantName}</span></p>
                     </div>
                     <h2 className='hidden text-sm md:text-xl lg:flex text-black font-medium justify-center items-center'>₹{props.product.pricePerPiece * quantity - (props.product.discountPrice || 0)}</h2>
-                    <h2 className='hidden text-sm md:text-xl lg:flex text-green-600 font-medium justify-center items-center'>₹{props.product.discountPrice || 0}</h2>
+                    
                     <div className="hidden mt-4 lg:flex flex-col justify-center items-center sm:mt-0">
                         <div className="flex gap-1 items-center border-gray-100">
                             {!editable ? (
