@@ -1,48 +1,52 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom';
 
-const CategoryMegaMenu = ({ categories, toggleMenu }) => {
-  const navigate = useNavigate();
+const CategoryListItem = (props) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const toggleIsOpen = ()=> {
+        setIsOpen(!isOpen);
+    }
+
+    const navigate = useNavigate();
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 p-6 bg-white rounded-lg shadow-lg">
-      {categories.map((category, idx) => (
-        <div key={idx} className="space-y-2">
-          {/* Category Icon + Title */}
-          <div className="flex items-center space-x-2 cursor-pointer">
-            {category.icon && (
-              <img
-                src={category.icon}
-                alt={category.categoryDisplayName}
-                className="w-10 h-10 object-contain"
-              />
-            )}
-            <h2 className="font-bold text-gray-800 text-lg hover:text-blue-600 transition-colors">
-              {category.categoryDisplayName}
-            </h2>
-          </div>
-
-          {/* Subcategories */}
-          <ul className="pl-1 space-y-1">
-            {category.subCategories.map((sub, i) => (
-              <li
-                key={i}
-                className="text-gray-600 hover:text-blue-500 cursor-pointer text-sm transition-colors"
-                onClick={() => {
-                  toggleMenu();
-                  navigate(
-                    `/category/${sub.subcategoryName}-aesc-${sub.subcategoryDisplayName}`
-                  );
-                }}
-              >
-                {sub.subcategoryDisplayName}
-              </li>
-            ))}
-          </ul>
+    <div className={`${isOpen ? "bg-gray-200" : ""} py-6 px-2 flex justify-between`}>
+        <div className='w-full'>
+            <h1 className='text-md font-medium cursor-pointer' onClick={toggleIsOpen}>{props.categoryDisplayName}</h1>
+            <div>
+                {isOpen?
+                    <ul className='pl-6 pt-4 space-y-2'>
+                        {props.subCategories.map(cat =>(
+                            <li className='text-gray-500 w-max cursor-pointer' onClick={() => {
+                                props.toggleMenu()
+                                navigate(`/category/${cat.subcategoryName}-aesc-${cat.subcategoryDisplayName}`)}}>{cat.subcategoryDisplayName}</li>
+                        ))}
+                    </ul>:
+                    <h2 className=' w-40 whitespace-nowrap overflow-hidden overflow-ellipsis'>{props.subCategories.map(c => c.subcategoryDisplayName).join(', ')}</h2>
+                }
+            </div>
         </div>
-      ))}
+        {isOpen?
+            <button onClick={toggleIsOpen} className='self-start'>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="30" height="30">
+                    <line x1="20" y1="50" x2="80" y2="50" stroke="black" strokeWidth="10" />
+                </svg>
+            </button>:
+            <button onClick={toggleIsOpen} className='self-start'>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="30" height="30">
+                    <line x1="30" y1="50" x2="70" y2="50" stroke="black" strokeWidth="10" />
+                    <line x1="50" y1="30" x2="50" y2="70" stroke="black" strokeWidth="10" />
+                </svg>
+            </button>
+        
+          
+         }
+        
+        
+      
     </div>
-  );
-};
+  )
+}
 
-export default CategoryMegaMenu;
+export default CategoryListItem
+
