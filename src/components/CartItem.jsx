@@ -135,7 +135,7 @@ const CartItem = (props) => {
                     </div>
                     <div className='mt-3 flex lg:hidden justify-around w-full'>
                         <h2 className=''><span className='text-xs'>You Pay</span><span className='text-xl text-black font-medium flex justify-center items-center'>₹{props.product.discountPrice} </span></h2>
-                        <h2 className=''><span className='text-xs'>You Save</span><span className='text-xl text-green-600 font-medium flex justify-center items-center'>₹{props.product.pricePerPiece - (props.product.discountPrice || 0)}</span></h2>
+{/*                         <h2 className=''><span className='text-xs'>You Save</span><span className='text-xl text-green-600 font-medium flex justify-center items-center'>₹{props.product.pricePerPiece - (props.product.discountPrice || 0)}</span></h2> */}
                         <div className="flex gap-1 items-center border-gray-100">
                             {!editable ? (
                                 <PencilIcon className='h-4 w-4 sm:h-6 sm:w-6 self-end mb-1' onClick={handleEditClick} />
