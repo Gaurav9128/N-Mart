@@ -1,69 +1,48 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import { PlusIcon, MinusIcon } from "@heroicons/react/20/solid";
 
-const CategoryListItem = (props) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const toggleIsOpen = () => {
-    setIsOpen(!isOpen);
-  };
-
+const CategoryMegaMenu = ({ categories, toggleMenu }) => {
   const navigate = useNavigate();
 
   return (
-    <div
-      className={`${
-        isOpen ? "bg-gray-100" : "hover:bg-gray-50"
-      } py-4 px-3 flex justify-between items-start rounded-md transition-colors duration-200`}
-    >
-      <div className="w-full">
-        {/* Category Title */}
-        <h1
-          className="text-md font-semibold text-gray-800 cursor-pointer hover:text-blue-600 transition-colors"
-          onClick={toggleIsOpen}
-        >
-          {props.categoryDisplayName}
-        </h1>
-
-        <div>
-          {isOpen ? (
-            <ul className="pl-4 pt-3 space-y-2">
-              {props.subCategories.map((cat, idx) => (
-                <li
-                  key={idx}
-                  className="text-gray-600 hover:text-blue-600 cursor-pointer transition-colors"
-                  onClick={() => {
-                    props.toggleMenu();
-                    navigate(
-                      `/category/${cat.subcategoryName}-aesc-${cat.subcategoryDisplayName}`
-                    );
-                  }}
-                >
-                  {cat.subcategoryDisplayName}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <h2 className="w-48 text-sm text-gray-500 whitespace-nowrap overflow-hidden overflow-ellipsis">
-              {props.subCategories.map((c) => c.subcategoryDisplayName).join(", ")}
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 p-6 bg-white rounded-lg shadow-lg">
+      {categories.map((category, idx) => (
+        <div key={idx} className="space-y-2">
+          {/* Category Icon + Title */}
+          <div className="flex items-center space-x-2 cursor-pointer">
+            {category.icon && (
+              <img
+                src={category.icon}
+                alt={category.categoryDisplayName}
+                className="w-10 h-10 object-contain"
+              />
+            )}
+            <h2 className="font-bold text-gray-800 text-lg hover:text-blue-600 transition-colors">
+              {category.categoryDisplayName}
             </h2>
-          )}
-        </div>
-      </div>
+          </div>
 
-      {/* Toggle Button */}
-      <button
-        onClick={toggleIsOpen}
-        className="p-1 rounded-full hover:bg-gray-200 transition-colors"
-      >
-        {isOpen ? (
-          <MinusIcon className="h-5 w-5 text-gray-600" />
-        ) : (
-          <PlusIcon className="h-5 w-5 text-gray-600" />
-        )}
-      </button>
+          {/* Subcategories */}
+          <ul className="pl-1 space-y-1">
+            {category.subCategories.map((sub, i) => (
+              <li
+                key={i}
+                className="text-gray-600 hover:text-blue-500 cursor-pointer text-sm transition-colors"
+                onClick={() => {
+                  toggleMenu();
+                  navigate(
+                    `/category/${sub.subcategoryName}-aesc-${sub.subcategoryDisplayName}`
+                  );
+                }}
+              >
+                {sub.subcategoryDisplayName}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
     </div>
   );
 };
 
-export default CategoryListItem;
+export default CategoryMegaMenu;
