@@ -185,6 +185,7 @@ const decreaseQuantity = () => {
                             quantity: quantity
                         });
                     });
+                    alert("Your product is updated in the cart!");
                 } else {
                     await addDoc(itemsCollection, {
                         productId: props.id,
@@ -196,6 +197,7 @@ const decreaseQuantity = () => {
                         variantName: selectedVariant.name,
                         productBrand: props.brand
                     });
+                    alert("Your product is updated in the cart!");
                 }
     
                 getCartTotal();
