@@ -249,7 +249,7 @@ const decreaseQuantity = () => {
             {selectedVariant && <>
                 <div className='w-full sm:pt-4 flex justify-around sm:flex-col' >
 
-                    <img src={props.image} alt="Product" className="h-24 md:h-28 lg:h-32 w-auto object-contain rounded-t-xl cursor-pointer duration-500 hover:scale-105" onClick={() => { navigate(`/product/${props.id}`) }} />
+                    <img src={props.image} loading="lazy" alt="Product" className="h-24 md:h-28 lg:h-32 w-auto object-contain rounded-t-xl cursor-pointer duration-500 hover:scale-105" onClick={() => { navigate(`/product/${props.id}`) }} />
                     <div className="w-1/2 sm:w-full gap-2 sm:gap-0  flex flex-col sm:px-4 md:px-2 sm:py-3">
                         <span className="text-gray-400 mr-3 uppercase text-xs">{props.brand}</span>
                         <p className="text-md sm:text-sm lg:text-lg font-medium text-gray-600 truncate block capitalize cursor-pointer hover:underline" onClick={() => { navigate(`/product/${props.id}`) }}>{props.title} : <span>{selectedVariant.name}</span> </p>
