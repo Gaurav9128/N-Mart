@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import FooterComponent from '../components/FooterComponent';
 import { UserAuth } from '../hooks/useAuth';
 import axios from 'axios';
+import Loader from '../components/Loader';
 
 const Cart = () => {
     const userId = localStorage.getItem("userId");
@@ -18,7 +19,7 @@ const Cart = () => {
     const [isCouponValid, setIsCouponValid] = useState(null);
     const navigate = useNavigate();
     const user = UserAuth();
-
+    const [loader, setLoader] = useState(false);
     useEffect(() => {
         getCartItems();
     }, []);
@@ -101,6 +102,7 @@ const Cart = () => {
         console.log("handleCheckout function called");
 
         try {
+            setLoader(true);
             const userDoc = await getDoc(doc(firestore, 'users', userId));
             if (!userDoc.exists()) {
                 console.error('User not found');
@@ -183,6 +185,9 @@ const Cart = () => {
             console.error('Error during checkout:', err.response?.data || err.message);
             alert("Something went wrong while processing your order.");
         }
+        finally {
+            setLoader(false);
+        }
     };
 
     const clearCart = async () => {
@@ -249,65 +254,71 @@ const Cart = () => {
     }, [cartItems]);
 
     return (
-        <div className="min-h-screen flex flex-col justify-between mt-32 md:mt-28">
-            <Navbar />
-            {cartItems && cartItems.length > 0 ?
-                <div className="mx-auto w-full px-1 sm:w-11/12 max-w-screen-2xl md:justify-between px-6 lg:flex lg:space-x-6 xl:px-0">
-                    <div className='sm:w-full'>
-                        <h1 className="mb-2 sm:mb-10 flex items-center gap-2">
-                            <span className='text-md font-bold'>My Cart</span>
-                            <span className='text-md text-gray-600 mr-2'>
-                                ({cartItems.reduce((total, currentItem) => total + parseInt(currentItem.quantity), 0)} item(s))
-                            </span>
-                            <span className='hidden sm:block h-[1px] flex-grow bg-gray-600'></span>
-                        </h1>
-                        <div className='grid grid-cols-8 w-full mx-4 mb-4 text-gray-500 font-medium'>
-                            <p className='hidden lg:block col-span-4'>Product</p>
-                            <p className='hidden lg:block col-span-1 text-center'>You Pay</p>
-{/*                             <p className='hidden lg:block col-span-1 text-center'>You Save</p> */}
-                            <p className='hidden lg:block col-span-1 text-center'>No. of items</p>
-                            <p className='hidden lg:block col-span-1'></p>
-                        </div>
-                        {cartItems.map((product, index) => (
-                            <div className="flex flex-col rounded-lg md:w-full" key={index}>
-                                <CartItem product={product} index={index} updateCart={updateCart} getCartItems={getCartItems} />
-                            </div>
-                        ))}
-                    </div>
-                    <CartTotal cartItems={cartItems} onCheckout={handleCheckout} />
-                </div>
-                :
-                <div className='mx-auto w-11/12 max-w-screen-2xl flex flex-col items-center justify-center gap-4 mb-10'>
-                    <svg className='h-32 w-auto' viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M21 5L19 12H7.37671M20 16H8L6 3H3M11 3L13.5 5.5M13.5 5.5L16 8M13.5 5.5L16 3M13.5 5.5L11 8M9 20C9 20.5523 8.55228 21 8 21C7.44772 21 7 20.5523 7 20C7 19.4477 7.44772 19 8 19C8.55228 19 9 19.4477 9 20ZM20 20C20 20.5523 19.5523 21 19 21C18.4477 21 18 20.5523 18 20C18 19.4477 18.4477 19 19 19C19.5523 19 20 19.4477 20 20Z" stroke="#317ad8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
-                    </svg>
-                    <h1 className='text-md sm:text-2xl font-medium'>No items in your cart</h1>
-                    <p className='text-sm text-gray-500 font-normal'>Browse from our wide variety of products & exciting offers</p>
-                    <button className='w-36 rounded-lg text-white py-4 bg-blue-500 hover:bg-blue-400' onClick={() => { navigate("/") }}>Start Shopping</button>
-                </div>
+        <>
+            {
+                loader &&
+                <Loader />
             }
-            <div className="mx-auto w-full px-6 lg:px-0">
-                <div className="flex flex-col mt-4">
-                    <label htmlFor="couponCode" className="text-sm font-medium">Enter Coupon Code</label>
-                    <input
-                        type="text"
-                        id="couponCode"
-                        value={couponCode}
-                        onChange={handleCouponCodeChange}
-                        className="border rounded p-2 mt-2"
-                    />
-                    <button
-                        onClick={validateCoupon}
-                        className="bg-blue-500 text-white rounded p-2 mt-2"
-                    >
-                        Apply Coupon
-                    </button>
-                    {isCouponValid === true && <p className="text-green-500">Coupon is valid!</p>}
-                    {isCouponValid === false && <p className="text-red-500">Coupon is invalid or expired.</p>}
+            <div className="min-h-screen flex flex-col justify-between mt-32 md:mt-28">
+                <Navbar />
+                {cartItems && cartItems.length > 0 ?
+                    <div className="mx-auto w-full px-1 sm:w-11/12 max-w-screen-2xl md:justify-between px-6 lg:flex lg:space-x-6 xl:px-0">
+                        <div className='sm:w-full'>
+                            <h1 className="mb-2 sm:mb-10 flex items-center gap-2">
+                                <span className='text-md font-bold'>My Cart</span>
+                                <span className='text-md text-gray-600 mr-2'>
+                                    ({cartItems.reduce((total, currentItem) => total + parseInt(currentItem.quantity), 0)} item(s))
+                                </span>
+                                <span className='hidden sm:block h-[1px] flex-grow bg-gray-600'></span>
+                            </h1>
+                            <div className='grid grid-cols-8 w-full mx-4 mb-4 text-gray-500 font-medium'>
+                                <p className='hidden lg:block col-span-4'>Product</p>
+                                <p className='hidden lg:block col-span-1 text-center'>You Pay</p>
+                                {/*                             <p className='hidden lg:block col-span-1 text-center'>You Save</p> */}
+                                <p className='hidden lg:block col-span-1 text-center'>No. of items</p>
+                                <p className='hidden lg:block col-span-1'></p>
+                            </div>
+                            {cartItems.map((product, index) => (
+                                <div className="flex flex-col rounded-lg md:w-full" key={index}>
+                                    <CartItem product={product} index={index} updateCart={updateCart} getCartItems={getCartItems} />
+                                </div>
+                            ))}
+                        </div>
+                        <CartTotal cartItems={cartItems} onCheckout={handleCheckout} />
+                    </div>
+                    :
+                    <div className='mx-auto w-11/12 max-w-screen-2xl flex flex-col items-center justify-center gap-4 mb-10'>
+                        <svg className='h-32 w-auto' viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M21 5L19 12H7.37671M20 16H8L6 3H3M11 3L13.5 5.5M13.5 5.5L16 8M13.5 5.5L16 3M13.5 5.5L11 8M9 20C9 20.5523 8.55228 21 8 21C7.44772 21 7 20.5523 7 20C7 19.4477 7.44772 19 8 19C8.55228 19 9 19.4477 9 20ZM20 20C20 20.5523 19.5523 21 19 21C18.4477 21 18 20.5523 18 20C18 19.4477 18.4477 19 19 19C19.5523 19 20 19.4477 20 20Z" stroke="#317ad8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
+                        </svg>
+                        <h1 className='text-md sm:text-2xl font-medium'>No items in your cart</h1>
+                        <p className='text-sm text-gray-500 font-normal'>Browse from our wide variety of products & exciting offers</p>
+                        <button className='w-36 rounded-lg text-white py-4 bg-blue-500 hover:bg-blue-400' onClick={() => { navigate("/") }}>Start Shopping</button>
+                    </div>
+                }
+                <div className="mx-auto w-full px-6 lg:px-0">
+                    <div className="flex flex-col mt-4">
+                        <label htmlFor="couponCode" className="text-sm font-medium">Enter Coupon Code</label>
+                        <input
+                            type="text"
+                            id="couponCode"
+                            value={couponCode}
+                            onChange={handleCouponCodeChange}
+                            className="border rounded p-2 mt-2"
+                        />
+                        <button
+                            onClick={validateCoupon}
+                            className="bg-blue-500 text-white rounded p-2 mt-2"
+                        >
+                            Apply Coupon
+                        </button>
+                        {isCouponValid === true && <p className="text-green-500">Coupon is valid!</p>}
+                        {isCouponValid === false && <p className="text-red-500">Coupon is invalid or expired.</p>}
+                    </div>
                 </div>
+                <FooterComponent />
             </div>
-            <FooterComponent />
-        </div>
+        </>
     );
 }
 
