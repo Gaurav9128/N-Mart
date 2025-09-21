@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 
 const CartTotal = ({ cartItems, onCheckout }) => {
-    const [cartTotal, setCartTotal] = useState(0);
-    const [savings, setSavings] = useState(0);
+    const [Amount, setCartTotal] = useState(0);
+    const [CartTotal, setSavings] = useState(0);
     const [warning, setWarning] = useState('');
 
     useEffect(() => {
