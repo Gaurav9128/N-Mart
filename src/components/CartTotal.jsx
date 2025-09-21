@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 
 const CartTotal = ({ cartItems, onCheckout }) => {
-    const [Amount, setCartTotal] = useState(0);
-    const [CartTotal, setSavings] = useState(0);
+    const [CartTotal, setCartTotal] = useState(0);
+    const [savings, setSavings] = useState(0);
     const [warning, setWarning] = useState('');
 
     useEffect(() => {
@@ -41,7 +41,7 @@ const CartTotal = ({ cartItems, onCheckout }) => {
                     <h1 className='font-medium text-md'>Price Summary</h1>
                 </div>
                 <div className="py-4 w-11/12 mx-auto flex border-b justify-between">
-                    <p className="text-gray-700">Cart Total</p>
+                    <p className="text-gray-700">Amount</p>
                     <p className="text-green-700">₹{cartTotal}</p>
                 </div>
                 <div className="py-4 w-11/12 mx-auto flex border-b justify-between">
@@ -49,7 +49,7 @@ const CartTotal = ({ cartItems, onCheckout }) => {
                     <p className="text-red-700">+ Extra</p>
                 </div>
                 <div className="py-4 w-11/12 mx-auto flex justify-between">
-                    <p className="text-gray-700">Savings</p>
+                    <p className="text-gray-700">Total Amount</p>
                     <p className="text-green-700">₹{savings}</p>
                 </div>
                 {warning && (
