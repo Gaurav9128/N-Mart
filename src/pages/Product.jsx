@@ -122,6 +122,3 @@ export default function Product() {
     </div>
   );
 }
-
-
-export default Product
