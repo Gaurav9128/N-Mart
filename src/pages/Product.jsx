@@ -415,12 +415,13 @@ const Product = (props) => {
                 <h1 className='text-2xl underline mb-4'>Related Products</h1>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                   {relatedProducts.map((item) => (
-                    <div key={item.id} className="border rounded-lg p-4 hover:shadow-lg transition">
-                      <img
-                        src={Array.isArray(item.image) ? item.image[0] : item.image}
-                        alt={item.title}
-                        className="h-40 w-full object-cover mb-2 rounded-md"
-                      />
+                    <div className="h-40 w-full flex items-center justify-center bg-white rounded-md mb-2">
+                        <img
+                          src={Array.isArray(item.image) ? item.image[0] : item.image}
+                          alt={item.title}
+                          className="max-h-full max-w-full object-contain"
+                        />
+                      </div>
                       <h2 className="text-md font-semibold">{item.title}</h2>
                       <p className="text-sm text-gray-500">{item.brand}</p>
                       <button
