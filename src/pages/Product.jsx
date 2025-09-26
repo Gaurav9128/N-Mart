@@ -5,11 +5,12 @@ import { CheckIcon, ShoppingCartIcon, TrashIcon } from '@heroicons/react/20/soli
 import Navbar from '../components/Navbar';
 import CategoryBanner from '../components/CategoryBanner';
 import { firestore } from '../firebase/FirebaseConfig';
-import { doc, documentId, getDoc, query, where, collection, getDocs, addDoc, arrayUnion, updateDoc, increment, deleteDoc } from 'firebase/firestore';
+import { doc, getDoc, query, where, collection, getDocs, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { useParams } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
 import { cartTotalAtom } from '../store/atoms/totalCartQuantity';
 import '../App.css'
+
 const Product = (props) => {
 
   const [product, setProduct] = useState();
@@ -24,33 +25,59 @@ const Product = (props) => {
   const [discount1, setDiscount1] = useState(0);
   const [discount2, setDiscount2] = useState(0);
 
+  // ✅ Related products
+  const [relatedProducts, setRelatedProducts] = useState([]);
 
   const { id } = useParams();
 
   useEffect(() => {
     getProductDetails();
-  }, [])
+  }, [id]);
 
   useEffect(() => {
     if (prices.length > 0) {
-      const minQuantity = prices[0][0]; // Get the minimum quantity from the prices array
-      setQuantity(minQuantity); // Set the minimum quantity as the initial value
-      setPricePerPiece(prices[0][2]); // Set the price per piece based on the minimum quantity
-      setTotal(minQuantity * prices[0][2]); // Set the total based on the minimum quantity and price per piece
+      const minQuantity = prices[0][0];
+      setQuantity(minQuantity);
+      setPricePerPiece(prices[0][2]);
+      setTotal(minQuantity * prices[0][2]);
     }
   }, [prices]);
-
 
   const getProductDetails = async () => {
     const productRef = doc(firestore, 'products', id);
     const prod = await getDoc(productRef);
-    setDiscount1(prod.data().discount1)
-    setDiscount2(prod.data().discount2)
-    setProduct(prod.data());
-    setDiscount1(prod.data().discount1)
-    setActiveImage(prod.data().image);
+    const productData = prod.data();
+
+    setProduct(productData);
+    setDiscount1(productData.discount1);
+    setDiscount2(productData.discount2);
+    setActiveImage(productData.image);
     getVariationData();
-  }
+
+    // ✅ Fetch related products (same category)
+    if (productData.category) {
+      getRelatedProducts(productData.category);
+    }
+  };
+
+  const getRelatedProducts = async (category) => {
+    try {
+      const q = query(
+        collection(firestore, "products"),
+        where("category", "==", category)
+      );
+      const querySnapshot = await getDocs(q);
+      let productsArray = [];
+      querySnapshot.forEach((docSnap) => {
+        if (docSnap.id !== id) {
+          productsArray.push({ id: docSnap.id, ...docSnap.data() });
+        }
+      });
+      setRelatedProducts(productsArray);
+    } catch (err) {
+      console.error("Error fetching related products:", err);
+    }
+  };
 
   const getPricesData = async (variationId) => {
     const docRef = collection(firestore, "products", id, "variations", variationId, "prices");
@@ -61,46 +88,38 @@ const Product = (props) => {
       if (!pricesArray[i]) {
         pricesArray[i] = [];
       }
-      console.log(doc.data())
       pricesArray[i][0] = doc.data().minQuantity;
       pricesArray[i][1] = doc.data().maxQuantity;
       pricesArray[i][2] = doc.data().price;
       i++;
-    })
-    console.log("pricesArray", pricesArray)
+    });
     setPrices(pricesArray);
-  }
+  };
+
   const getVariationData = async () => {
     const docRef = collection(firestore, "products", id, "variations");
     const docSnap = await getDocs(docRef);
     const newData = docSnap.docs.map(doc => ({ variationId: doc.id, ...doc.data() }));
-
     setVariations(newData);
     setSelectedVariant(newData[0]);
     getQuantity(newData[0].variationId);
-    getPricesData(newData[0].variationId)
-  }
+    getPricesData(newData[0].variationId);
+  };
 
   const getQuantity = async (variationid) => {
     const cartRef = collection(firestore, 'carts');
     const q = query(cartRef, where("userId", "==", localStorage.getItem('userId')));
     const querySnapshot = await getDocs(q);
     const currdoc = querySnapshot.docs[0];
+    if (!currdoc) return;
     const itemsCollection = collection(firestore, "carts", currdoc.id, "items");
-    const itemq = query(itemsCollection, where("productId", "==", id), where("variantId", "==", variationid))
-    const docSnap = await getDocs(itemq);
-    console.log(JSON.stringify(docSnap.docs))
-    if (docSnap.docs[0]) {
-      // setQuantity(docSnap.docs[0].data().quantity);
-      // console.log(docSnap.docs[0].data().quantity+"maha")
-    }
-  }
+    const itemq = query(itemsCollection, where("productId", "==", id), where("variantId", "==", variationid));
+    await getDocs(itemq);
+  };
 
   const handleVariantChange = (v) => {
-    // Example: Update price based on the selected variant
     let i = -1;
     for (let j = 0; j < variations.length; j++) {
-
       if (variations[j].name === v) {
         i = j;
         break;
@@ -108,7 +127,7 @@ const Product = (props) => {
     }
     setSelectedVariant(variations[i]);
     getQuantity(variations[i].variationId);
-    getPricesData(variations[i].variationId)
+    getPricesData(variations[i].variationId);
   };
 
   const getCartTotal = async () => {
@@ -122,13 +141,11 @@ const Product = (props) => {
       if (!docSnap.empty) {
         docSnap.forEach((doc) => {
           allItems.push({ id: doc.id, ...doc.data() });
-        })
-        setCartTotal(allItems.reduce((total, currentItem) => { return total + parseInt(currentItem.quantity) }, 0))
-
+        });
+        setCartTotal(allItems.reduce((total, currentItem) => total + parseInt(currentItem.quantity), 0));
       }
     }
-
-  }
+  };
 
   const addToCart = async () => {
     try {
@@ -139,10 +156,9 @@ const Product = (props) => {
         if (querySnapshot.empty) {
           const docRef = await addDoc(cartRef, {
             userId: localStorage.getItem('userId')
-          })
-
+          });
           const itemsCollection = collection(firestore, "carts", docRef.id, "items");
-          const itemRef = await addDoc(itemsCollection, {
+          await addDoc(itemsCollection, {
             productId: id,
             variantId: selectedVariant.variationId,
             quantity: quantity,
@@ -151,14 +167,9 @@ const Product = (props) => {
             pricePerPiece: pricePerPiece,
             variantName: selectedVariant.name,
             productBrand: product.brand
-
-          })
-
-        }
-        else {
-
+          });
+        } else {
           const currdoc = querySnapshot.docs[0];
-
           const existingItemsCollection = collection(firestore, 'carts', currdoc.id, "items");
           const itemQuery = query(existingItemsCollection, where("productId", "==", id), where("variantId", "==", selectedVariant.variationId));
           const itemDoc = await getDocs(itemQuery);
@@ -168,11 +179,10 @@ const Product = (props) => {
               await updateDoc(itemRef, {
                 pricePerPiece: pricePerPiece,
                 quantity: quantity
-
-              })
+              });
             });
           } else {
-            const itemRef = await addDoc(existingItemsCollection, {
+            await addDoc(existingItemsCollection, {
               productId: id,
               variantId: selectedVariant.variationId,
               quantity: quantity,
@@ -181,51 +191,44 @@ const Product = (props) => {
               pricePerPiece: pricePerPiece,
               variantName: selectedVariant.name,
               productBrand: product.brand
-            })
+            });
           }
         }
         getCartTotal();
-
       } else {
         alert("Sign in first");
         return;
       }
     } catch (err) {
-      console.error(err)
+      console.error(err);
     }
-  }
+  };
 
   const deleteCartItem = async () => {
     try {
       const cartRef = collection(firestore, 'carts');
       const q = query(cartRef, where("userId", "==", localStorage.getItem('userId')));
       const querySnapshot = await getDocs(q);
-      console.log();
       const currdoc = querySnapshot.docs[0];
       const itemsCollection = collection(firestore, "carts", currdoc.id, "items");
-      console.log(currdoc.id)
-      const itemq = query(itemsCollection, where("productId", "==", id), where("variantId", "==", selectedVariant.variationId))
+      const itemq = query(itemsCollection, where("productId", "==", id), where("variantId", "==", selectedVariant.variationId));
       const itemDoc = await getDocs(itemq);
-      console.log(itemDoc.docs[0].id);
-      const docDel = doc(firestore, "carts", currdoc.id, "items", itemDoc.docs[0].id)
-      await deleteDoc(docDel)
+      const docDel = doc(firestore, "carts", currdoc.id, "items", itemDoc.docs[0].id);
+      await deleteDoc(docDel);
       setCartTotal(cartTotal - quantity);
       setQuantity(0);
     } catch (err) {
-      console.error(err)
+      console.error(err);
     }
-
-  }
+  };
 
   const handleFocus = (event) => {
-    // Clear the input if the initial value is 0 when it's focused
     if (quantity === 0) {
       event.target.value = '';
     }
   };
 
   const handleBlur = (event) => {
-    // Set the input value to 0 if it's empty when blurred
     if (event.target.value === '') {
       setQuantity(0);
     }
@@ -234,8 +237,6 @@ const Product = (props) => {
   const handleQuantityChange = (e) => {
     const inputValue = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
     setQuantity(inputValue);
-
-    // Find the price for the given quantity range
     let newPricePerPiece = 0;
     let newTotal = 0;
     for (let i = 0; i < prices.length; i++) {
@@ -245,24 +246,21 @@ const Product = (props) => {
         break;
       }
     }
-
-    setPricePerPiece(newPricePerPiece); // Update price per piece
-    setTotal(newTotal); // Update total
-  }
-
+    setPricePerPiece(newPricePerPiece);
+    setTotal(newTotal);
+  };
 
   const increaseQuantity = () => {
     const newQuantity = quantity + 1;
     setQuantity(newQuantity);
-    handleQuantityChange({ target: { value: newQuantity } }); // Manually call handleQuantityChange
-  }
+    handleQuantityChange({ target: { value: newQuantity } });
+  };
 
   const decreaseQuantity = () => {
     const newQuantity = quantity - 1;
     setQuantity(newQuantity);
-    handleQuantityChange({ target: { value: newQuantity } }); // Manually call handleQuantityChange
-  }
-
+    handleQuantityChange({ target: { value: newQuantity } });
+  };
 
   const [zoomedImageStyle, setZoomedImageStyle] = useState({
     display: 'none',
@@ -283,14 +281,11 @@ const Product = (props) => {
     const rect = originalImage.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-
-    const zoomFactor = 2; // Adjust the zoom factor as needed
+    const zoomFactor = 2;
     const zoomedWidth = rect.width * zoomFactor;
     const zoomedHeight = rect.height * zoomFactor;
-
     const newLeft = -x * zoomFactor + rect.width / 2;
     const newTop = -y * zoomFactor + rect.height / 2;
-
     setZoomedImageStyle({
       display: 'block',
       left: `${newLeft}px`,
@@ -301,85 +296,69 @@ const Product = (props) => {
   };
 
   function classNames(...classes) {
-    return classes.filter(Boolean).join(' ')
+    return classes.filter(Boolean).join(' ');
   }
-
 
   return (
     <div className='pt-20'>
       <Navbar />
       {product && <>
         <div className="mt-24">
-          {/* <!-- Breadcrumbs --> */}
-          {/* <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center space-x-2 text-gray-400 text-sm">
-            <a href="#" className="hover:underline hover:text-gray-600">Drink</a>
-            <span>
-              <svg className="h-5 w-5 leading-none text-gray-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </span>
-            <a href="#" className="hover:underline hover:text-gray-600">Coffee</a>
-          </div>
-        </div> */}
-          {/* <!-- ./ Breadcrumbs --> */}
-
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row -mx-4">
+              {/* Product Images */}
               <div className="md:flex-1 px-4">
-                <div x-data="{ image: 1 }">
-                  <div className="h-64 md:h-80 rounded-lg bg-gray-100 mb-4">
-                    <div className="h-64 md:h-80 rounded-lg bg-gray-100 mb-4 flex items-center justify-center">
-                      <div className="image-container">
-                        <div className="image-wrapper">
-                          <img
-                            src={activeImage}
-                            alt="Zoomable"
-                            className="original-image"
-                            onMouseOver={handleMouseOver}
-                            onMouseOut={handleMouseOut}
-                            onMouseMove={handleMouseMove}
-                          />
-                          <div
-                            className="zoomed-image-container"
-                            style={{ display: zoomedImageStyle.display }}
-                          >
-                            <img
-                              src={activeImage}
-                              alt="Zoomed"
-                              className="zoomed-image"
-                              style={{
-                                left: zoomedImageStyle.left,
-                                top: zoomedImageStyle.top,
-                                width: zoomedImageStyle.width,
-                                height: zoomedImageStyle.height,
-                              }}
-                            />
-                          </div>
-                        </div>
+                <div className="h-64 md:h-80 rounded-lg bg-gray-100 mb-4 flex items-center justify-center">
+                  <div className="image-container">
+                    <div className="image-wrapper">
+                      <img
+                        src={activeImage}
+                        alt="Zoomable"
+                        className="original-image"
+                        onMouseOver={handleMouseOver}
+                        onMouseOut={handleMouseOut}
+                        onMouseMove={handleMouseMove}
+                      />
+                      <div
+                        className="zoomed-image-container"
+                        style={{ display: zoomedImageStyle.display }}
+                      >
+                        <img
+                          src={activeImage}
+                          alt="Zoomed"
+                          className="zoomed-image"
+                          style={{
+                            left: zoomedImageStyle.left,
+                            top: zoomedImageStyle.top,
+                            width: zoomedImageStyle.width,
+                            height: zoomedImageStyle.height,
+                          }}
+                        />
                       </div>
                     </div>
                   </div>
-
-                  <div className="flex -mx-2 mb-4 gap-2">
-                    {product.image.map((img, idx) => (
-                      <div key={idx} className="flex-1 px-2">
-                        <button
-                          onClick={() => setActiveImage(img)}
-                          className={`focus:outline-none rounded-lg h-24 md:h-32 bg-gray-100 flex items-center justify-center ${activeImage === img ? 'ring-2 ring-indigo-300 ring-inset' : ''
-                            }`}
-                        >
-                          <img className="border border-gray-400 object-cover w-full h-full" src={img} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
+                </div>
+                <div className="flex -mx-2 mb-4 gap-2">
+                  {product.image.map((img, idx) => (
+                    <div key={idx} className="flex-1 px-2">
+                      <button
+                        onClick={() => setActiveImage(img)}
+                        className={`focus:outline-none rounded-lg h-24 md:h-32 bg-gray-100 flex items-center justify-center ${activeImage === img ? 'ring-2 ring-indigo-300 ring-inset' : ''}`}
+                      >
+                        <img className="border border-gray-400 object-cover w-full h-full" src={img} />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
+
+              {/* Product Details */}
               {selectedVariant &&
                 <div className="md:flex-1 px-4">
-                  <h2 className="mb-2 leading-tight tracking-tight font-bold text-gray-800 text-2xl md:text-3xl">{product.title}: <span className='text-md font-normal'>{selectedVariant.name}</span></h2>
-                  <p className="text-gray-500 text-sm">By <a href="#" className="text-indigo-600 hover:underline">{product.brand}</a></p>
+                  <h2 className="mb-2 leading-tight tracking-tight font-bold text-gray-800 text-2xl md:text-3xl">
+                    {product.title}: <span className='text-md font-normal'>{selectedVariant.name}</span>
+                  </h2>
+                  <p className="text-gray-500 text-sm">By <span className="text-indigo-600">{product.brand}</span></p>
 
                   <RadioGroup value={selectedVariant} onChange={handleVariantChange} className="py-8 border-b">
                     <RadioGroup.Label>Variant</RadioGroup.Label>
@@ -397,37 +376,20 @@ const Product = (props) => {
                     </div>
                   </RadioGroup>
 
+                  {/* Discounts */}
                   {discount1 && discount2 && (
                     <>
-                      <div>
-                        <lable>Disount One</lable>
-                        <input disabled value={discount1 + "%"} style={{ border: 'none' }} />
-                      </div>
-                      <div>
-                        <lable>Disount Second</lable>
-                        <input disabled value={discount2 + "%"} style={{ border: 'none' }} />
-                      </div>
+                      <div><label>Discount One</label><input disabled value={discount1 + "%"} style={{ border: 'none' }} /></div>
+                      <div><label>Discount Second</label><input disabled value={discount2 + "%"} style={{ border: 'none' }} /></div>
                     </>
                   )}
-                  {discount1 && discount2 == '' && (<div>
-                    <lable>Disount</lable>
-                    <input disabled value={discount1 + "%"} style={{ border: 'none' }} />
-                  </div>)}
-                  {discount1 == '' && discount2 && (<div>
-                    <lable>Disount</lable>
-                    <input disabled value={discount1 + "%"} style={{ border: 'none' }} />
-                  </div>)}
+
                   <div className="flex flex-col pt-4 pb-8 space-y-12 border-b">
-                    {/* <div className='flex gap-12'>
-                  <p className='flex flex-col text-2xl h-10'><span className='text-gray-500'>1-10</span> <span>₹{selectedVariant.price}</span></p>
-                  <p className='flex flex-col text-2xl h-10'><span className='text-gray-500'>11-50</span> <span>₹280</span></p>
-                  <p className='flex flex-col text-2xl h-10'><span className='text-gray-500'> &gt;=51</span> <span>₹{260}</span></p>
-              </div> */}
                     <div className='hidden sm:flex mt-2 w-full flex justify-between items-center'>
                       <div className="flex items-center border-gray-100">
-                        <button className={`${quantity > 0 ? "bg-blue-500 hover:bg-blue-300" : "bg-gray-200"} text-white cursor-pointer rounded-l py-1 px-3.5 duration-100 `} disabled={quantity < 1 ? true : false} onClick={decreaseQuantity}> - </button>
+                        <button className={`${quantity > 0 ? "bg-blue-500 hover:bg-blue-300" : "bg-gray-200"} text-white cursor-pointer rounded-l py-1 px-3.5 duration-100`} disabled={quantity < 1} onClick={decreaseQuantity}> - </button>
                         <input className="h-8 w-14 border bg-white text-center text-black text-xs outline-none py-2" type='number' value={quantity} onChange={handleQuantityChange} onFocus={handleFocus} onBlur={handleBlur} />
-                        <button className={`bg-blue-500 hover:bg-blue-300 h-8 text-white text-xl rounded-r  px-3 duration-100`} onClick={increaseQuantity}> + </button>
+                        <button className="bg-blue-500 hover:bg-blue-300 h-8 text-white text-xl rounded-r px-3 duration-100" onClick={increaseQuantity}> + </button>
                       </div>
                       <h2 className=' text-xs flex flex-col gap-1'><span className='text-gray-500 font-bold'>Rs/pc</span><span className='text-black'>{pricePerPiece}</span></h2>
                       <h2 className=' text-xs flex flex-col gap-1'><span className='text-gray-500 font-bold'>Total</span><span className='text-black'>{total}</span></h2>
@@ -436,23 +398,47 @@ const Product = (props) => {
                       <ShoppingCartIcon className='w-auto h-5 text-white' />
                       <span className='text-white font-medium text-sm'>Add To Cart </span>
                     </button>
-
                   </div>
                 </div>
               }
             </div>
+
+            {/* Product Description */}
             <div className="w-full px-2 py-16 sm:px-0">
               <h1 className='text-2xl underline mb-4'>Description</h1>
               <p className='text-lg font-normal'>{product.description}</p>
             </div>
-                        
+
+            {/* ✅ Related Products */}
+            {relatedProducts.length > 0 && (
+              <div className="w-full px-2 py-16 sm:px-0">
+                <h1 className='text-2xl underline mb-4'>Related Products</h1>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                  {relatedProducts.map((item) => (
+                    <div key={item.id} className="border rounded-lg p-4 hover:shadow-lg transition">
+                      <img
+                        src={Array.isArray(item.image) ? item.image[0] : item.image}
+                        alt={item.title}
+                        className="h-40 w-full object-cover mb-2 rounded-md"
+                      />
+                      <h2 className="text-md font-semibold">{item.title}</h2>
+                      <p className="text-sm text-gray-500">{item.brand}</p>
+                      <button
+                        onClick={() => window.location.href = `/product/${item.id}`}
+                        className="mt-2 text-sm bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-400"
+                      >
+                        View Product
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </>}
-
     </div>
-    
   )
 }
 
-export default Product
+export default Product;
