@@ -27,6 +27,9 @@ const Product = (props) => {
 
   const { id } = useParams();
 
+  function RelatedProducts({ category, currentProductId }) {
+  const [relatedProducts, setRelatedProducts] = useState([]);
+
   useEffect(() => {
     getProductDetails();
   }, [])
@@ -40,6 +43,26 @@ const Product = (props) => {
     }
   }, [prices]);
 
+  useEffect(() => {
+    const fetchRelated = async () => {
+      const q = query(
+        collection(firestore, "products"),
+        where("category", "==", category)
+      );
+      const querySnapshot = await getDocs(q);
+
+      const products = [];
+      querySnapshot.forEach((doc) => {
+        if (doc.id !== currentProductId) {
+          products.push({ id: doc.id, ...doc.data() });
+        }
+      });
+
+      setRelatedProducts(products);
+    };
+
+    if (category) fetchRelated();
+  }, [category, currentProductId]);
 
   const getProductDetails = async () => {
     const productRef = doc(firestore, 'products', id);
@@ -445,11 +468,29 @@ const Product = (props) => {
               <h1 className='text-2xl underline mb-4'>Description</h1>
               <p className='text-lg font-normal'>{product.description}</p>
             </div>
+            <h2 className="text-2xl font-semibold mb-4">Related Products</h2>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        {relatedProducts.map((item) => (
+          <div
+            key={item.id}
+            className="border rounded-lg shadow-md p-2 hover:scale-105 transition cursor-pointer"
+          >
+            <img
+              src={item.image}
+              alt={item.title}
+              className="w-full h-40 object-cover rounded-md"
+            />
+            <h3 className="mt-2 font-semibold text-sm">{item.title}</h3>
+            <p className="text-gray-600 text-xs">₹{item.price}</p>
+          </div>
+        ))}
+      </div>            
           </div>
         </div>
       </>}
 
     </div>
+    
   )
 }
 
