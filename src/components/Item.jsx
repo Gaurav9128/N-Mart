@@ -255,14 +255,13 @@ const decreaseQuantity = () => {
             {/* Add ToastContainer at the end */}
             <ToastContainer
                 position="top-right"
-                autoClose={3000}
+                autoClose={1000}
                 hideProgressBar={false}
                 newestOnTop={false}
                 closeOnClick
                 rtl={false}
                 pauseOnFocusLoss
                 draggable
-                pauseOnHover
             />
             {selectedVariant && <>
                 <div className='w-full sm:pt-4 flex justify-around sm:flex-col' >
