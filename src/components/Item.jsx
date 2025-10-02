@@ -7,6 +7,8 @@ import { CheckIcon, ChevronUpDownIcon, TrashIcon } from '@heroicons/react/20/sol
 import { ShoppingCartIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useRecoilState } from 'recoil';
 import { cartTotalAtom } from '../store/atoms/totalCartQuantity';
+import { toast } from 'react-toastify';
+
 
 const Item = (props) => {
     console.log("props",props)
@@ -185,7 +187,7 @@ const decreaseQuantity = () => {
                             quantity: quantity
                         });
                     });
-                    alert("Your product is updated in the cart!");
+                   toast.success("Your product is updated in the cart! 🛒");
                      
                 } else {
                     await addDoc(itemsCollection, {
@@ -198,7 +200,7 @@ const decreaseQuantity = () => {
                         variantName: selectedVariant.name,
                         productBrand: props.brand
                     });
-                    alert("Your product is updated in the cart!");
+                   toast.success("Your product is added to the cart! ✅");
                      
                 }
     
