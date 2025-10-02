@@ -10,6 +10,10 @@ import { UserAuth } from '../hooks/useAuth';
 import axios from 'axios';
 import Loader from '../components/Loader';
 
+// ✅ Toastify import
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 const Cart = () => {
     const userId = localStorage.getItem("userId");
     const [cartItems, setCartItems] = useState([]);
@@ -20,6 +24,7 @@ const Cart = () => {
     const navigate = useNavigate();
     const user = UserAuth();
     const [loader, setLoader] = useState(false);
+
     useEffect(() => {
         getCartItems();
     }, []);
@@ -47,14 +52,15 @@ const Cart = () => {
                         localStorage.removeItem('orderDetails');
                         localStorage.removeItem('orderid');
                         await clearCart();
-                        alert(`Your Order was Successfully Placed. Your Order ID: ${storedOrderId}, Cart Total: ${cartTotal}`);
+                        // ✅ replaced alert
+                        toast.success(`Your Order was Successfully Placed. Order ID: ${storedOrderId}, Total: ${cartTotal}`);
                     } else {
                         console.error("Order details are missing from localStorage.");
                     }
                 } else if (status === 'AUTHENTICATION_FAILED') {
-                    alert('Operation AUTHENTICATION_FAILED');
+                    toast.error('Operation AUTHENTICATION_FAILED');
                 } else if (status === 'AUTHORIZATION_FAILED') {
-                    alert('Operation AUTHORIZATION_FAILED');
+                    toast.error('Operation AUTHORIZATION_FAILED');
                 }
             }
         };
@@ -74,6 +80,9 @@ const Cart = () => {
                     id: doc.id,
                 }));
                 setCartItems(cartItemsArray);
+
+                // ✅ show toast when items are added
+                toast.success("Product added to cart!");
             } else {
                 setCartItems([]);
             }
@@ -147,7 +156,8 @@ const Cart = () => {
                     paymentStatus: 'Credit Sale'
                 });
                 await clearCart();
-                alert('Your Order Successfully Placed');
+                // ✅ replaced alert
+                toast.success('Your Order Successfully Placed');
             } else {
                 console.log("Initiating payment for amount:", cartTotal);
                 const payload = {
@@ -172,7 +182,7 @@ const Cart = () => {
                     localStorage.setItem('orderid', JSON.stringify(randomId));
                     window.location.href = linkUrl;
                 } else {
-                    alert("Payment initiation failed. Please try again.");
+                    toast.error("Payment initiation failed. Please try again.");
                 }
             }
 
@@ -183,7 +193,7 @@ const Cart = () => {
 
         } catch (err) {
             console.error('Error during checkout:', err.response?.data || err.message);
-            alert("Something went wrong while processing your order.");
+            toast.error("Something went wrong while processing your order.");
         }
         finally {
             setLoader(false);
@@ -222,15 +232,19 @@ const Cart = () => {
 
                 if (currentDate >= startDate && currentDate <= endDate && couponData.isActive) {
                     setIsCouponValid(true);
+                    toast.success("Coupon applied successfully!");
                 } else {
                     setIsCouponValid(false);
+                    toast.error("Coupon expired or inactive.");
                 }
             } else {
                 setIsCouponValid(false);
+                toast.error("Invalid Coupon Code.");
             }
         } catch (err) {
             console.error('Error validating coupon:', err);
             setIsCouponValid(false);
+            toast.error("Error validating coupon.");
         }
     };
 
@@ -255,13 +269,13 @@ const Cart = () => {
 
     return (
         <>
-            {
-                loader &&
-                <Loader />
-            }
+            {loader && <Loader />}
+            {/* ✅ Toast Container */}
+            <ToastContainer position="top-center" autoClose={3000} />
+
             <div className="min-h-screen flex flex-col justify-between mt-32 md:mt-28">
                 <Navbar />
-                {cartItems && cartItems.length > 0 ?
+                {cartItems && cartItems.length > 0 ? (
                     <div className="mx-auto w-full px-1 sm:w-11/12 max-w-screen-2xl md:justify-between px-6 lg:flex lg:space-x-6 xl:px-0">
                         <div className='sm:w-full'>
                             <h1 className="mb-2 sm:mb-10 flex items-center gap-2">
@@ -274,7 +288,6 @@ const Cart = () => {
                             <div className='grid grid-cols-8 w-full mx-4 mb-4 text-gray-500 font-medium'>
                                 <p className='hidden lg:block col-span-4'>Product</p>
                                 <p className='hidden lg:block col-span-1 text-center'>You Pay</p>
-                                {/*                             <p className='hidden lg:block col-span-1 text-center'>You Save</p> */}
                                 <p className='hidden lg:block col-span-1 text-center'>No. of items</p>
                                 <p className='hidden lg:block col-span-1'></p>
                             </div>
@@ -286,7 +299,7 @@ const Cart = () => {
                         </div>
                         <CartTotal cartItems={cartItems} onCheckout={handleCheckout} />
                     </div>
-                    :
+                ) : (
                     <div className='mx-auto w-11/12 max-w-screen-2xl flex flex-col items-center justify-center gap-4 mb-10'>
                         <svg className='h-32 w-auto' viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M21 5L19 12H7.37671M20 16H8L6 3H3M11 3L13.5 5.5M13.5 5.5L16 8M13.5 5.5L16 3M13.5 5.5L11 8M9 20C9 20.5523 8.55228 21 8 21C7.44772 21 7 20.5523 7 20C7 19.4477 7.44772 19 8 19C8.55228 19 9 19.4477 9 20ZM20 20C20 20.5523 19.5523 21 19 21C18.4477 21 18 20.5523 18 20C18 19.4477 18.4477 19 19 19C19.5523 19 20 19.4477 20 20Z" stroke="#317ad8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
@@ -295,7 +308,7 @@ const Cart = () => {
                         <p className='text-sm text-gray-500 font-normal'>Browse from our wide variety of products & exciting offers</p>
                         <button className='w-36 rounded-lg text-white py-4 bg-blue-500 hover:bg-blue-400' onClick={() => { navigate("/") }}>Start Shopping</button>
                     </div>
-                }
+                )}
                 <div className="mx-auto w-full px-6 lg:px-0">
                     <div className="flex flex-col mt-4">
                         <label htmlFor="couponCode" className="text-sm font-medium">Enter Coupon Code</label>
