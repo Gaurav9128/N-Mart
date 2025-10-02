@@ -43,6 +43,7 @@ const Cart = () => {
                     where('transactionId', '==', transactionID)
                 );
                 const existingOrderSnapshot = await getDocs(existingOrderQuery);
+
                 if (status === 'CHARGED') {
                     const orderData = localStorage.getItem('orderDetails');
                     if (orderData) {
@@ -52,15 +53,17 @@ const Cart = () => {
                         localStorage.removeItem('orderDetails');
                         localStorage.removeItem('orderid');
                         await clearCart();
-                        // ✅ replaced alert
-                        toast.success(`Your Order was Successfully Placed. Order ID: ${storedOrderId}, Total: ${cartTotal}`);
+
+                        // ✅ replaced alert with toast
+                        toast.success(`✅ Your Order was Successfully Placed. 
+                          Order ID: ${storedOrderId}, Total: ₹${cartTotal}`);
                     } else {
-                        console.error("Order details are missing from localStorage.");
+                        toast.error("❌ Order details are missing from localStorage.");
                     }
                 } else if (status === 'AUTHENTICATION_FAILED') {
-                    toast.error('Operation AUTHENTICATION_FAILED');
+                    toast.error('❌ Operation AUTHENTICATION_FAILED');
                 } else if (status === 'AUTHORIZATION_FAILED') {
-                    toast.error('Operation AUTHORIZATION_FAILED');
+                    toast.error('❌ Operation AUTHORIZATION_FAILED');
                 }
             }
         };
@@ -81,13 +84,16 @@ const Cart = () => {
                 }));
                 setCartItems(cartItemsArray);
 
-                // ✅ show toast when items are added
-                toast.success("Product added to cart!");
+                // ✅ show toast only if items exist
+                if (cartItemsArray.length > 0) {
+                    toast.success("🛒 Cart items loaded successfully!");
+                }
             } else {
                 setCartItems([]);
             }
         } catch (err) {
             console.error("Error fetching cart items:", err);
+            toast.error("⚠️ Error fetching cart items!");
         }
     };
 
@@ -114,7 +120,7 @@ const Cart = () => {
             setLoader(true);
             const userDoc = await getDoc(doc(firestore, 'users', userId));
             if (!userDoc.exists()) {
-                console.error('User not found');
+                toast.error("❌ User not found!");
                 return;
             }
 
@@ -156,8 +162,9 @@ const Cart = () => {
                     paymentStatus: 'Credit Sale'
                 });
                 await clearCart();
+
                 // ✅ replaced alert
-                toast.success('Your Order Successfully Placed');
+                toast.success('🎉 Your Order Successfully Placed (Credit Sale)');
             } else {
                 console.log("Initiating payment for amount:", cartTotal);
                 const payload = {
@@ -167,22 +174,19 @@ const Cart = () => {
                     phone: mobile || "9999999999"
                 };
 
-                console.log("Sending payload:", payload);
-
                 const response = await axios.post(
                     "https://nmart-node.onrender.com/initiate-payment",
                     payload,
                     { headers: { "Content-Type": "application/json" } }
                 );
 
-                console.log("Payment response:", response.data);
-
                 if (response.data && response.data.payment_url) {
                     let linkUrl = response.data.payment_url.replace(/\n/g, "");
                     localStorage.setItem('orderid', JSON.stringify(randomId));
+                    toast.info("Redirecting to payment gateway...");
                     window.location.href = linkUrl;
                 } else {
-                    toast.error("Payment initiation failed. Please try again.");
+                    toast.error("⚠️ Payment initiation failed. Please try again.");
                 }
             }
 
@@ -193,7 +197,7 @@ const Cart = () => {
 
         } catch (err) {
             console.error('Error during checkout:', err.response?.data || err.message);
-            toast.error("Something went wrong while processing your order.");
+            toast.error("❌ Something went wrong while processing your order.");
         }
         finally {
             setLoader(false);
@@ -212,7 +216,7 @@ const Cart = () => {
                 deleteDoc(doc(firestore, 'carts', currdoc.id, "items", itemDoc.id))
             );
             await Promise.all(deletePromises);
-            console.log("Cart items successfully cleared.");
+            toast.success("🧹 Cart cleared successfully!");
         }
         setCartItems([]);
         setCartTotal(0);
@@ -232,19 +236,19 @@ const Cart = () => {
 
                 if (currentDate >= startDate && currentDate <= endDate && couponData.isActive) {
                     setIsCouponValid(true);
-                    toast.success("Coupon applied successfully!");
+                    toast.success("🎉 Coupon applied successfully!");
                 } else {
                     setIsCouponValid(false);
-                    toast.error("Coupon expired or inactive.");
+                    toast.error("⚠️ Coupon expired or inactive.");
                 }
             } else {
                 setIsCouponValid(false);
-                toast.error("Invalid Coupon Code.");
+                toast.error("❌ Invalid Coupon Code.");
             }
         } catch (err) {
             console.error('Error validating coupon:', err);
             setIsCouponValid(false);
-            toast.error("Error validating coupon.");
+            toast.error("⚠️ Error validating coupon.");
         }
     };
 
