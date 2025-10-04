@@ -7,11 +7,11 @@ import { CheckIcon, ChevronUpDownIcon, TrashIcon } from '@heroicons/react/20/sol
 import { ShoppingCartIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useRecoilState } from 'recoil';
 import { cartTotalAtom } from '../store/atoms/totalCartQuantity';
-import { ToastContainer, toast } from 'react-toastify'; // ✅ Import Toastify
+import { toast, ToastContainer } from 'react-toastify'; // ✅ Import Toastify
 import 'react-toastify/dist/ReactToastify.css'; // ✅ Toastify CSS
 
 const Item = (props) => {
-    console.log("props",props)
+    console.log("props", props)
     const [prices, setPrices] = useState([[]]);
     const [variations, setVariations] = useState([]);
     const [selectedVariant, setSelectedVariant] = useState();
@@ -72,7 +72,7 @@ const Item = (props) => {
             i++;
         })
         setPrices(pricesArray); // <-- Here you're setting the pricesArray state
-        console.log("price"+prices) // <-- This line might not reflect the updated state immediately
+        console.log("price" + prices) // <-- This line might not reflect the updated state immediately
         let minimumQuantityOfProduct = Number.MAX_SAFE_INTEGER;
         let maximumQuantityOfProduct = 0;
         for (let i = 0; i < pricesArray.length; i++) {
@@ -80,17 +80,17 @@ const Item = (props) => {
             if (pricesArray[i][1] > maximumQuantityOfProduct) maximumQuantityOfProduct = pricesArray[i][1];
         }
         setQuantity(minimumQuantityOfProduct);
-        console.log("minimumQuantityOfProduct "+minimumQuantityOfProduct)
+        console.log("minimumQuantityOfProduct " + minimumQuantityOfProduct)
     }
-    
+
     const getVariationData = async () => {
         const docRef = collection(firestore, "products", props.id, "variations");
         const docSnap = await getDocs(docRef);
         const newData = docSnap.docs.map(doc => ({ variationId: doc.id, ...doc.data() }));
-    
+
         setVariations(newData);
         setSelectedVariant(newData[0]);
-        
+
         // Fetch MRP data
         const productDocRef = doc(firestore, "products", props.id);
         const productDocSnap = await getDoc(productDocRef);
@@ -99,45 +99,45 @@ const Item = (props) => {
         } else {
             console.error("No such document!");
         }
-    
+
         getQuantity(newData[0].variationId);
         getPricesData(newData[0].variationId);
     }
-    
 
-  const getQuantity = async (variationid) => {
-    console.log("variationid"+variationid)
-    const cartRef = collection(firestore, 'carts');
-    const q = query(cartRef, where("userId", "==", localStorage.getItem('userId')));
-    const querySnapshot = await getDocs(q);
-    const currdoc = querySnapshot.docs[0];
-    const itemsCollection = collection(firestore, "carts", currdoc.id, "items");
-    const itemq = query(itemsCollection, where("productId", "==", props.id), where("variantId", "==", variationid))
-    const docSnap = await getDocs(itemq);
-    if (docSnap.docs[0]) {
-        // setQuantity(docSnap.docs[0].data().quantity);
-        // console.log("docSnap.docs[0].data().quantity "+docSnap.docs[0].data().quantity) // <-- Here you're updating the quantity state
-    
+
+    const getQuantity = async (variationid) => {
+        console.log("variationid" + variationid)
+        const cartRef = collection(firestore, 'carts');
+        const q = query(cartRef, where("userId", "==", localStorage.getItem('userId')));
+        const querySnapshot = await getDocs(q);
+        const currdoc = querySnapshot.docs[0];
+        const itemsCollection = collection(firestore, "carts", currdoc.id, "items");
+        const itemq = query(itemsCollection, where("productId", "==", props.id), where("variantId", "==", variationid))
+        const docSnap = await getDocs(itemq);
+        if (docSnap.docs[0]) {
+            // setQuantity(docSnap.docs[0].data().quantity);
+            // console.log("docSnap.docs[0].data().quantity "+docSnap.docs[0].data().quantity) // <-- Here you're updating the quantity state
+
+        }
     }
-}
 
-const increaseQuantity = () => {
-    const newQuantity = Number(quantity) + 1;
-    if (newQuantity <= maximumQuantityOfItem) {
-        setQuantity(newQuantity);
-        console.log("newQuantity "+newQuantity)
-    }
-};
+    const increaseQuantity = () => {
+        const newQuantity = Number(quantity) + 1;
+        if (newQuantity <= maximumQuantityOfItem) {
+            setQuantity(newQuantity);
+            console.log("newQuantity " + newQuantity)
+        }
+    };
 
-const decreaseQuantity = () => {
-    const newQuantity = Number(quantity) - 1;
-    if (newQuantity >= minimumQuantityOfItem) {
-        setQuantity(newQuantity);
-    }
-};
+    const decreaseQuantity = () => {
+        const newQuantity = Number(quantity) - 1;
+        if (newQuantity >= minimumQuantityOfItem) {
+            setQuantity(newQuantity);
+        }
+    };
 
 
-  
+
 
 
 
@@ -145,28 +145,28 @@ const decreaseQuantity = () => {
         let newVariant = variations.find(variant => variant.name === v);
         setSelectedVariant(newVariant);
     };
-    
+
     useEffect(() => {
         if (selectedVariant) {
             getQuantity(selectedVariant.variationId);
             getPricesData(selectedVariant.variationId);
         }
     }, [selectedVariant]);
-    
-    
+
+
     const addToCart = async () => {
         if (quantity < minimumQuantityOfItem || quantity > maximumQuantityOfItem) {
             alert(`Minimum quantity of this product is ${minimumQuantityOfItem} & maximum quantity of this product is ${maximumQuantityOfItem}`);
             return;
         }
-    
+
         try {
             const cartRef = collection(firestore, 'carts');
             if (localStorage.getItem('userId')) {
                 const q = query(cartRef, where("userId", "==", localStorage.getItem('userId')));
                 const querySnapshot = await getDocs(q);
                 let docRef;
-    
+
                 if (querySnapshot.empty) {
                     docRef = await addDoc(cartRef, {
                         userId: localStorage.getItem('userId')
@@ -174,11 +174,11 @@ const decreaseQuantity = () => {
                 } else {
                     docRef = querySnapshot.docs[0].id;
                 }
-    
+
                 const itemsCollection = collection(firestore, "carts", docRef, "items");
                 const itemQuery = query(itemsCollection, where("productId", "==", props.id), where("variantId", "==", selectedVariant.variationId));
                 const itemDoc = await getDocs(itemQuery);
-    
+
                 if (!itemDoc.empty) {
                     itemDoc.forEach(async (idoc) => {
                         const itemRef = doc(firestore, "carts", docRef, "items", idoc.id);
@@ -187,8 +187,7 @@ const decreaseQuantity = () => {
                             quantity: quantity
                         });
                     });
-                    toast.success("Your product is updated in the cart!"); 
-                     
+                    toast.success("Your product is updated in the cart!", { autoClose: 2000 });
                 } else {
                     await addDoc(itemsCollection, {
                         productId: props.id,
@@ -200,10 +199,10 @@ const decreaseQuantity = () => {
                         variantName: selectedVariant.name,
                         productBrand: props.brand
                     });
-                     toast.success("Your product is added to the cart!");
-                     
+                   toast.success("Your product is updated in the cart!", { autoClose: 2000 });
+
                 }
-    
+
                 getCartTotal();
             } else {
                 alert("Sign in first");
@@ -212,12 +211,12 @@ const decreaseQuantity = () => {
             console.error(err);
         }
     };
-    
+
     useEffect(() => {
         console.log("Current quantity:", quantity);
     }, [quantity]);
-   
-    
+
+
     const getCartTotal = async () => {
         const q = query(collection(firestore, "carts"), where("userId", "==", localStorage.getItem("userId")));
         const querySnapshot = await getDocs(q);
@@ -236,7 +235,7 @@ const decreaseQuantity = () => {
         }
 
     }
-    
+
     const handleQuantityChange = (e) => {
         const inputValue = e.target.value;
         setQuantity(e.target.value);
@@ -245,24 +244,29 @@ const decreaseQuantity = () => {
     useEffect(() => {
         // Only set the quantity when the data is fetched and available
         if (prices.length > 0) {
-            setQuantity(minimumQuantityOfItem); 
+            setQuantity(minimumQuantityOfItem);
             console.log(minimumQuantityOfItem)// Set initial quantity to the minimum quantity
         }
     }, []);
+
+      const toastContainer = useMemo(() => (
+        <ToastContainer
+            position="top-right"
+            autoClose={2000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+        />
+    ), []);
     return (
 
         <div className="w-11/12 p-2 lg:p-4 sm:w-full lg:h-auto sm:h-auto bg-white border-2 shadow-md rounded-xl">
-            {/* Add ToastContainer at the end */}
-            <ToastContainer
-                position="top-right"
-                autoClose={1000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-            />
+            {toastContainer}
+
             {selectedVariant && <>
                 <div className='w-full sm:pt-4 flex justify-around sm:flex-col' >
 
@@ -321,9 +325,9 @@ const decreaseQuantity = () => {
                         </Listbox>
                         <div className='hidden sm:flex mt-2 w-full flex justify-between items-center'>
                             <div className="flex items-center border-gray-100">
-                                    <button className={`${quantity > minimumQuantityOfItem ? "bg-blue-500 hover:bg-blue-300" : "bg-gray-200"} text-white cursor-pointer rounded-l py-1 px-3.5 duration-100 `} disabled={quantity <= minimumQuantityOfItem ? true : false} onClick={decreaseQuantity}> - </button>
-                                    <input className="h-8 w-14 border bg-white text-center text-black text-xs outline-none py-2" type='number' value={quantity} onChange={handleQuantityChange} min={minimumQuantityOfItem} max={maximumQuantityOfItem} />
-                                    <button className={`bg-blue-500 hover:bg-blue-300 h-8 text-white text-xl rounded-r  px-3 duration-100`} onClick={increaseQuantity}> + </button>
+                                <button className={`${quantity > minimumQuantityOfItem ? "bg-blue-500 hover:bg-blue-300" : "bg-gray-200"} text-white cursor-pointer rounded-l py-1 px-3.5 duration-100 `} disabled={quantity <= minimumQuantityOfItem ? true : false} onClick={decreaseQuantity}> - </button>
+                                <input className="h-8 w-14 border bg-white text-center text-black text-xs outline-none py-2" type='number' value={quantity} onChange={handleQuantityChange} min={minimumQuantityOfItem} max={maximumQuantityOfItem} />
+                                <button className={`bg-blue-500 hover:bg-blue-300 h-8 text-white text-xl rounded-r  px-3 duration-100`} onClick={increaseQuantity}> + </button>
                             </div>
                             <h2 className=' text-xs flex flex-col gap-1'><span className='text-gray-500 font-bold'>Rs/pc</span><span className='text-black'>{pricePerPiece}</span></h2>
                             <h2 className=' text-xs flex flex-col gap-1'><span className='text-gray-500 font-bold'>Total</span><span className='text-black'>{total}</span></h2>
@@ -405,7 +409,7 @@ const decreaseQuantity = () => {
                         </div>
                     </div>
                 </div>
-                
+
             </>
             }
         </div>
