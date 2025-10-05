@@ -7,6 +7,8 @@ import CategoryBanner from '../components/CategoryBanner';
 import { useNavigate } from 'react-router-dom';
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { UserVerifiedStatus } from '../hooks/useAuth';
+import BestSeller from '../components/BestSeller';
+
 
 const Home = () => {
 
@@ -36,6 +38,10 @@ const Home = () => {
         <div className='relative mt-40 bg-white mt-8 md:mt-12 lg:mt-10 border-2 rounded-md py-2 px-4 w-11/12 mx-auto'>
         <CategorySlider />
         </div>
+        {/* 🏆 Best Seller Section */}
+<div className='relative mt-8 bg-white border-2 rounded-md py-4 px-4 w-11/12 mx-auto'>
+  <BestSeller />
+</div>
 
         <div className='mt-4 sm:mt-6 w-11/12 mx-auto p-1 sm:p-2 md:p-6 border-2 rounded-md bg-white'>
             <img className='w-full cursor-pointer' onClick={() => { navigate("/search?searchItem=beardo")}}  src="https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2F10.jpeg?alt=media&token=552c85f3-51eb-4bcd-a1f3-ed4c40cea3fb" alt="..." />

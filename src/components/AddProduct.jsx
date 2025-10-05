@@ -29,6 +29,7 @@ const AddProduct = () => {
     const [discount1, setDiscount1] = useState("");
     const [discount2, setDiscount2] = useState("");
     const [mrp, setMrp] = useState([]);
+     const [bestseller, setBestseller] = useState(false);
 
 
     useEffect(() => {
@@ -49,6 +50,7 @@ const AddProduct = () => {
         visible: z.boolean(),
         discount1: z.string().optional(),
         discount2: z.string().optional(),
+        bestseller: z.boolean(),
     });
     
 
@@ -183,6 +185,7 @@ const AddProduct = () => {
                     discount1,
                     discount2,
                     visible,
+                    bestseller,
                 });
     
                 const variationDataArray = variations.map((variation, index) => ({
@@ -289,6 +292,7 @@ const AddProduct = () => {
         setDiscount1("");
         setDiscount2("");
         setMrp("");
+        setBestseller(false);
     };
 
     return (
@@ -352,6 +356,12 @@ const AddProduct = () => {
                         </Transition>
                     </div>
                 </Listbox>
+            </div>
+
+             {/* Bestseller */}
+            <div className="md:col-span-5 flex items-center gap-2 mt-2">
+                <input type="checkbox" id="bestseller" checked={bestseller} onChange={(e) => setBestseller(e.target.checked)} />
+                <label htmlFor="bestseller" className="text-sm">Bestseller</label>
             </div>
 
             <div className="md:col-span-5">

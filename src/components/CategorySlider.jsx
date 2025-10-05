@@ -77,13 +77,13 @@ const CategorySlider = () => {
     ]
     };
     const imgPaths = [
-        "https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2FcategoryCreams.svg?alt=media&token=1d4b22cb-5e56-45c7-abdf-334935ce50ed",
-        "https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2FcategorySoaps.svg?alt=media&token=21adfed7-aa77-4313-bedb-8d7ddf4e4284",
-        "https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2FcategoryShampoos.svg?alt=media&token=46780278-ddc5-4425-8b89-d1d7383994a2",
-         "https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2FcategoryFresheners.svg?alt=media&token=e298d1a9-d604-4a7f-b120-2692950a12b0",
-        "https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2FcategoryHairOil.svg?alt=media&token=0a019237-d669-410a-944e-d7f398f066f4",
-        "https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2FcategoryToothpaste.svg?alt=media&token=b1066840-7038-4cbc-8301-6093b09c797a",
-        "https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2FcategoryEyeliner.svg?alt=media&token=3bbed903-8c5b-43f9-80a5-cc93349fbdcc"
+        "https://firebasestorage.googleapis.com/v0/b/ajmerclient.appspot.com/o/product-images%2Fb1909dfd-726c-412b-beb7-9553bc909363.jpeg?alt=media&token=78e483ed-74cd-4db8-89f1-8dfefb4aec4a",
+        "https://firebasestorage.googleapis.com/v0/b/ajmerclient.appspot.com/o/product-images%2F85efc2e5-e755-4a11-acc4-a330124b2084.jpeg?alt=media&token=9e2e0087-679c-4bd0-9a8c-cffb4d2f97df",
+        "https://firebasestorage.googleapis.com/v0/b/ajmerclient.appspot.com/o/product-images%2Fdb4f1d77-d089-4b0a-822a-c99354195258.jpeg?alt=media&token=5c43e1c3-ac4e-4aa8-912d-4b05b5dca65c",
+         "https://firebasestorage.googleapis.com/v0/b/ajmerclient.appspot.com/o/product-images%2F162b6151-c334-4591-8d34-1a550acfadd2.jpeg?alt=media&token=fc1eb231-9d3b-4c79-8d95-bad52d66ba26",
+        "https://firebasestorage.googleapis.com/v0/b/ajmerclient.appspot.com/o/product-images%2F11385813-64a1-4c03-a134-b5e75ed75213.jpeg?alt=media&token=d021e007-dd08-48bb-a6e6-2d115a102e85",
+        "https://firebasestorage.googleapis.com/v0/b/ajmerclient.appspot.com/o/product-images%2Fefef1eef-7ff3-487e-b543-1eb2b489304e.jpeg?alt=media&token=9740ad8a-0c70-452b-bf40-1afeae8a42fa",
+        "https://firebasestorage.googleapis.com/v0/b/ajmerclient.appspot.com/o/product-images%2F20230210-1454291.jpeg?alt=media&token=c1080862-b844-4609-9c39-ab4e35fede78"
     ]
 
   return (
