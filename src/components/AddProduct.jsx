@@ -29,7 +29,8 @@ const AddProduct = () => {
     const [discount1, setDiscount1] = useState("");
     const [discount2, setDiscount2] = useState("");
     const [mrp, setMrp] = useState([]);
-     const [bestseller, setBestseller] = useState(false);
+    const [bestseller, setBestseller] = useState(false);
+    const [trending, setTrending] = useState(false);
 
 
     useEffect(() => {
@@ -51,8 +52,9 @@ const AddProduct = () => {
         discount1: z.string().optional(),
         discount2: z.string().optional(),
         bestseller: z.boolean(),
+        trending: z.boolean(),
     });
-    
+
 
     const VariationSchema = z.object({
         name: z.string().min(1).max(50),
@@ -71,12 +73,12 @@ const AddProduct = () => {
         const maxQty = parseFloat(maxQuantity[index]);
         const Qty = parseFloat(quantity[index]);
         const priceVal = parseFloat(price[index]);
-    
+
         if (isNaN(minQty) || isNaN(maxQty) || isNaN(priceVal)) {
             alert("Ranges field cannot be empty");
             return;
         }
-    
+
         if (minQty >= maxQty) {
             alert("Minimum quantity cannot be greater than Maximum Quantity");
             return;
@@ -85,27 +87,27 @@ const AddProduct = () => {
             alert("Minimum quantity cannot be greater than Maximum Quantity");
             return;
         }
-    
+
         if (!priceRanges[index]) {
             priceRanges[index] = [];
         }
-    
+
         priceRanges[index].push([minQty, maxQty, priceVal]);
         setPriceRanges([...priceRanges]);
-    
+
         const newMinQuantity = [...minQuantity];
         const newMaxQuantity = [...maxQuantity];
         const newPrice = [...price];
-    
+
         newMinQuantity[index] = '';
         newMaxQuantity[index] = '';
         newPrice[index] = '';
-    
+
         setMinQuantity(newMinQuantity);
         setMaxQuantity(newMaxQuantity);
         setPrice(newPrice);
     };
-    
+
 
     const handleImageChange = (e) => {
         const files = Array.from(e.target.files);
@@ -163,7 +165,7 @@ const AddProduct = () => {
         e.preventDefault();
         setLoading(true);
         const prodRef = collection(firestore, "products");
-    
+
         try {
             let imgUrls = [];
             for (let i = 0; i < image.length; i++) {
@@ -172,7 +174,7 @@ const AddProduct = () => {
                 const url = await getDownloadURL(imgRef);
                 imgUrls.push(url);
             }
-    
+
             try {
                 const validatedProduct = ProductSchema.parse({
                     title,
@@ -186,24 +188,25 @@ const AddProduct = () => {
                     discount2,
                     visible,
                     bestseller,
+                    trending,
                 });
-    
+
                 const variationDataArray = variations.map((variation, index) => ({
                     name: variation,
                     quantity: parseInt(quantity[index], 10),
                     price: parseFloat(price[index]),
                     mrp: parseFloat(mrp[index]), // Add MRP value here
                 }));
-    
+
                 await runTransaction(firestore, async (transaction) => {
                     const docRef = doc(prodRef);
                     transaction.set(docRef, validatedProduct);
                     const variationsCollection = collection(firestore, "products", docRef.id, "variations");
-    
+
                     for (const [index, variation] of variationDataArray.entries()) {
                         const variationdocRef = doc(variationsCollection);
                         transaction.set(variationdocRef, variation);
-    
+
                         const pricesCollection = collection(firestore, "products", docRef.id, "variations", variationdocRef.id, "prices");
                         for (const priceData of priceRanges[index]) {
                             const priceDocRef = doc(pricesCollection);
@@ -215,7 +218,7 @@ const AddProduct = () => {
                         }
                     }
                 });
-    
+
                 setLoading(false);
                 alert("Product added");
                 resetForm();
@@ -229,7 +232,7 @@ const AddProduct = () => {
             setLoading(false);
         }
     };
-    
+
     const handlemrpdis = (index, e) => {
         if (!mrp) {
             return;
@@ -244,12 +247,12 @@ const AddProduct = () => {
             let disamount = totalmrp * discount2 / 100;
             totalmrp -= disamount;
         }
-    
+
         const newPrice = [...price];
         newPrice[index] = totalmrp.toFixed(2);
         setPrice(newPrice);
     };
-    
+
     useEffect(() => {
         if (Array.isArray(mrp)) {
             setPrice(prevPrice => {
@@ -271,8 +274,8 @@ const AddProduct = () => {
             // Optionally, handle the case where mrp is not an array
         }
     }, [discount1, discount2]);
-    
-    
+
+
 
 
     const resetForm = () => {
@@ -293,6 +296,7 @@ const AddProduct = () => {
         setDiscount2("");
         setMrp("");
         setBestseller(false);
+        setTrending(false);
     };
 
     return (
@@ -358,10 +362,21 @@ const AddProduct = () => {
                 </Listbox>
             </div>
 
-             {/* Bestseller */}
+            {/* Bestseller */}
             <div className="md:col-span-5 flex items-center gap-2 mt-2">
                 <input type="checkbox" id="bestseller" checked={bestseller} onChange={(e) => setBestseller(e.target.checked)} />
                 <label htmlFor="bestseller" className="text-sm">Bestseller</label>
+            </div>
+
+            {/* Trending Product */}
+            <div className="md:col-span-5 flex items-center gap-2 mt-2">
+                <input
+                    type="checkbox"
+                    id="trending"
+                    checked={trending}
+                    onChange={(e) => setTrending(e.target.checked)}
+                />
+                <label htmlFor="trending" className="text-sm">Trending Product</label>
             </div>
 
             <div className="md:col-span-5">
@@ -423,7 +438,7 @@ const AddProduct = () => {
                             <input type="number" name={`mrp-${index}`} id={`mrp-${index}`} className="h-10 border rounded px-4 w-full bg-gray-50" placeholder={`MRP for ${variation}`} value={mrp[index] || ''} onChange={(e) => {
                                 const newMrp = [...mrp];
                                 newMrp[index] = e.target.value;
-                                handlemrpdis(index,e.target.value);
+                                handlemrpdis(index, e.target.value);
                                 setMrp(newMrp);
                             }} />
                         </div>

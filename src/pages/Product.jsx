@@ -17,6 +17,7 @@ import { useParams } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
 import { cartTotalAtom } from '../store/atoms/totalCartQuantity';
 import '../App.css';
+import FooterComponent from '../components/FooterComponent';
 
 const Product = () => {
   const [product, setProduct] = useState();
@@ -340,10 +341,14 @@ const Product = () => {
               </div>
             )}
           </div>
+          {/* ✅ Add Footer here */}
+          <FooterComponent />
         </>
       )}
     </div>
+    
   );
 };
+
 
 export default Product;
