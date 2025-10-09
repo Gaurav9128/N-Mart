@@ -23,7 +23,7 @@ const Home = () => {
   return (
     <div className='bg-gray-100'>
       <Navbar />
-      <div className="max-w-11/12 mt-30 md:mt-[80px] h-44 lg:h-40 xl:h-80 2xl:h-[200px]">
+      <div className="max-w-11/12 mt-28 md:mt-[100px] h-44 lg:h-40 xl:h-80 2xl:h-[200px]">
         <Carousel indicators={false} leftControl=" " rightControl=" ">
           <img className='h-full' onClick={() => { navigate("/category/hairShampoossc2-aesc-Hair%20Shampoos") }} src="https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2F1.jpg?alt=media&token=30371cb2-2277-4456-a6df-b3e23f62ace4" alt="..." />
           <img className='h-full' onClick={() => { navigate("/category/faceCreamsc2-aesc-Face%20Cream") }} src="https://firebasestorage.googleapis.com/v0/b/ajmerclient.appspot.com/o/product-images%2FCream.jpeg?alt=media&token=84a5b91a-06d9-44e3-8168-9a4381b544f7" alt="..." />
