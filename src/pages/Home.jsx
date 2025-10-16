@@ -23,13 +23,13 @@ const Home = () => {
   return (
     <div className='bg-gray-100'>
       <Navbar />
-      <div className="max-w-11/12 mt-28 md:mt-[100px] h-44 lg:h-40 xl:h-80 2xl:h-[200px]">
+     <div className="max-w-11/12 mt-28 md:mt-[110px] h-60 md:h-72 lg:h-96 xl:h-[450px] 2xl:h-[550px]">
         <Carousel indicators={false} leftControl=" " rightControl=" ">
           <img className='h-full' onClick={() => { navigate("/category/hairShampoossc2-aesc-Hair%20Shampoos") }} src="https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2F1.jpg?alt=media&token=30371cb2-2277-4456-a6df-b3e23f62ace4" alt="..." />
-          <img className='h-full' onClick={() => { navigate("/category/faceCreamsc2-aesc-Face%20Cream") }} src="https://firebasestorage.googleapis.com/v0/b/ajmerclient.appspot.com/o/product-images%2FCream.jpeg?alt=media&token=84a5b91a-06d9-44e3-8168-9a4381b544f7" alt="..." />
+          <img className='h-full' onClick={() => { navigate("/category/faceCreamsc2-aesc-Face%20Cream") }} src="https://firebasestorage.googleapis.com/v0/b/ajmerclient.appspot.com/o/product-images%2F06c5f85b3891bbbe6e36a2a38096e4f4.jpg?alt=media&token=b889744f-9f90-4b10-8b20-20296c35cda5" alt="..." />
           <img className='h-full' onClick={() => { navigate("/category/faceMasksc2-aesc-Face%20Mask") }} src="https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2F3.png?alt=media&token=10e5a6d2-f280-4f05-9256-3f6787a93c40" alt="..." />
           <img className='h-full' onClick={() => { navigate("/category/creams&Lotionssc2-aesc-Creams%20&%20Lotions") }} src="https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2F4.jpg?alt=media&token=b26c48e8-5df8-40e2-81f3-a4a2f287f85a" alt="..." />
-          <img className='h-full' onClick={() => { navigate("/category/freshenerssc2-aesc-Fresheners") }} src="https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2F5.png?alt=media&token=ca31a388-43cb-4254-b64a-83a8b5cf6efe" alt="..." />
+          <img className='h-full' onClick={() => { navigate("/category/freshenerssc2-aesc-Fresheners") }} src="https://firebasestorage.googleapis.com/v0/b/ajmerclient.appspot.com/o/product-images%2FSummer%20Sale%20Cosmetics%20ADS%20-%20Made%20with%20PosterMyWall.jpg?alt=media&token=aac1bda2-4107-4973-8648-d1c1e442bbdb" alt="..." />
           <img className='h-full' onClick={() => { navigate("/category/toothpastesc2-aesc-ToothPaste") }} src="https://firebasestorage.googleapis.com/v0/b/ajmerclient.appspot.com/o/product-images%2FCOL0035_A1.jpeg?alt=media&token=7035bdef-b74f-47f4-b559-8cfabdbe4f45" alt="..." />
           <img className='h-full' onClick={() => { navigate("/category/eyelinerssc2-aesc-Eyeliners") }} src="https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2F7.jpeg?alt=media&token=ad75d0a2-a17f-4d58-ad0a-b68923f42479" alt="..." />
           <img className='h-full' onClick={() => { navigate("/category/hairShampoossc2-aesc-Hair%20Shampoos") }} src="https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2F8.png?alt=media&token=52f0419d-e4d1-4a4d-8a21-eed0852c8c87" alt="..." />
