@@ -11,7 +11,7 @@ const PrivacyPolicy = () => {
       <br></br><br></br>
       1. Pricing and Currency<br></br><br></br>
       <b>1.1 Currency</b>
-      All prices listed on our website are in [Your Currency] and are subject to change without notice.<br></br><br></br>
+      All prices listed on our website are in [INR] and are subject to change without notice.<br></br><br></br>
 
       <b>1.2 Price Changes</b>
       N-mart reserves the right to change prices at any time without prior notice.
@@ -47,7 +47,8 @@ const PrivacyPolicy = () => {
       <b>Return & Refund Policy</b><br></br>
       NO RETURN NO EXCHANGE..<br/><br/> 
 
-      "If by mistake an expired product is received, you can exchange it at the shop within 7 days or request a refund."
+      {/* "If by mistake an expired product is received, you can exchange it at the shop within 7 days or request a refund." */}
+      "We'll deliver the product within 3-7 business days. If there is any delay, we will inform you via email or phone."
       
       </div>
 
