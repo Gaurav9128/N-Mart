@@ -48,9 +48,9 @@ const PrivacyPolicy = () => {
       NO RETURN NO EXCHANGE..<br/><br/> 
 
       {/* "If by mistake an expired product is received, you can exchange it at the shop within 7 days or request a refund." */}
-      "We'll deliver the product within 3-7 business days. If there is any delay, we will inform you via email or phone."
+      "We'll deliver the product within 3-7 business days. If there is any delay, we will inform you via email or phone."<br></br>
 
-      NO REFUND No EXCHANGE No RETURN
+      NO REFUND NO RETURN & NO EXCHANGE.. 
       
       </div>
 
