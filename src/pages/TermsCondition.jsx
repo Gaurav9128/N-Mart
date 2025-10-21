@@ -1,5 +1,4 @@
 // TermsConditions.jsx
-
 import React from 'react';
 import Navbar from '../components/Navbar';
 import FooterComponent from '../components/FooterComponent';
@@ -16,7 +15,7 @@ const TermsConditions = () => {
 
                     <b>1. Acceptance of Terms</b><br />
 
-                    By accessing or using [Your Company Name]'s website, you agree to be bound by these Terms and Conditions.<br /><br />
+                    By accessing or using [Your Company Name]'s website, you agree to be bound by these Terms and Conditions.<br />
 
                     <b>User Conduct</b>
                     You agree not to engage in any activity that disrupts or interferes with the functioning of the
@@ -41,8 +40,8 @@ const TermsConditions = () => {
 
                     These Terms and Conditions shall be governed by and construed in accordance with the laws of
                     [Your Jurisdiction].<br /><br />
+                </p>
 
-                    <
            </div>
 
             <FooterComponent />
