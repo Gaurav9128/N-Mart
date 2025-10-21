@@ -87,7 +87,7 @@ const PrivacyPolicy = () => {
 
           <b>Return & Refund Policy</b><br />
           NO RETURN NO EXCHANGE..<br /><br />
-          We'll deliver the product within 3-7 business days. If there is any delay, we will inform you via email or phone.<br /><br />
+          We'll deliver the product within 3-7 business days. If there is any delay, we will inform you via email or phone.<br />
           NO REFUND NO RETURN & NO EXCHANGE..
         </div>
 
