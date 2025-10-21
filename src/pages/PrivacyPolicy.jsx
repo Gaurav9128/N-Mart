@@ -69,7 +69,7 @@ const PrivacyPolicy = () => {
         <b>Email:</b> [bhagwanharplani@gmail.com]<br /><br />
         <b>Phone:</b> [9829179622]<br /><br />
         <b>Address:</b> [Neelkamal hotel. Opp. St. John's church, Kesar Ganj, Diggi chawk, Ajmer.]<br /><br />
-      </p>
+      
       <b> Currency</b>
       All prices listed on our website are in [INR] and are subject to change without notice.<br></br><br></br>
 
