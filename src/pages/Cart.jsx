@@ -177,6 +177,8 @@ const Cart = () => {
                     method: 'POST',
                     headers: {
                       'Content-Type': 'application/json',
+                      'x-user-id': userId,
+                      'x-ord-id': randomId
                     },
                     body: JSON.stringify({
                       orderId: randomId,
