@@ -8,6 +8,8 @@ import { useNavigate } from 'react-router-dom';
 import FooterComponent from '../components/FooterComponent';
 import { UserAuth } from '../hooks/useAuth';
 import axios from 'axios'; // Use ES6 import for axios
+import Loader from '../components/Loader';
+
 
 const Cart = () => {
     const userId = localStorage.getItem("userId");
@@ -18,6 +20,7 @@ const Cart = () => {
     const [isCouponValid, setIsCouponValid] = useState(null);
     const navigate = useNavigate();
     const user = UserAuth();
+    const [loader, setLoader] = useState(false);
 
     useEffect(() => {
         getCartItems();
@@ -122,6 +125,7 @@ const Cart = () => {
         console.log("handleCheckout function called");
     
         try {
+            setLoader(true);
             // Define currentUrl here
             const currentUrl = window.location.href;
     
@@ -173,37 +177,63 @@ const Cart = () => {
                 alert('Your Order Successfully Placed');
             } else {
                 const randomId = generateRandomId();
-                fetch('https://nmart-node.onrender.com/initiateJuspayPayment', {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'x-user-id': userId,
-                      'x-ord-id': randomId
-                    },
-                    body: JSON.stringify({
-                      orderId: randomId,
-                      amount: cartTotal,
-                    }),
-                  })
-                    .then((response) => {
-                      if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                      }
-                      return response.json();
-                    })
-                    .then((data) => {
-                      console.log('Response data:', data);  // Handle the JSON data
-                      if(data.status=='NEW'){
-                        let orderid  = data.id;
-                        let linkUrl = data.payment_links.web;
-                        localStorage.setItem('orderid',orderid);
-                        console.log("linkUrl ",linkUrl)
-                        window.location.href = linkUrl;
-                      }
-                    })
-                    .catch((error) => {
-                      console.error('There was a problem with the fetch operation:', error);
-                    });
+                const payload = {
+                    amount: Number(cartTotal),
+                    name: `${firstName || ''} ${lastName || ''}`.trim(),
+                    email: email || "test@example.com",
+                    phone: mobile || "9999999999"
+                };
+
+                console.log("Sending payload:", payload);
+
+                const response = await axios.post(
+                    "https://nmart-node.onrender.com/initiate-payment",
+                    payload,
+                    { headers: { "Content-Type": "application/json" } }
+                );
+
+                console.log("Payment response:", response.data);
+
+                if (response.data && response.data.payment_url) {
+                    let linkUrl = response.data.payment_url.replace(/\n/g, "");
+                    localStorage.setItem('orderid', JSON.stringify(randomId));
+                    window.location.href = linkUrl;
+                } else {
+                    alert("Payment initiation failed. Please try again.");
+                }
+
+                // const randomId = generateRandomId();
+                // fetch('https://nmart-node.onrender.com/initiateJuspayPayment', {
+                //     method: 'POST',
+                //     headers: {
+                //       'Content-Type': 'application/json',
+                //       'x-user-id': userId,
+                //       'x-ord-id': randomId
+                //     },
+                //     body: JSON.stringify({
+                //       orderId: randomId,
+                //       amount: cartTotal,
+                //     }),
+                //   })
+                //     .then((response) => {
+                //       if (!response.ok) {
+                //         throw new Error('Network response was not ok');
+                //       }
+                //       return response.json();
+                //     })
+                //     .then((data) => {
+                //       console.log('Response data:', data);  // Handle the JSON data
+                //       if(data.status=='NEW'){
+                //         let orderid  = data.id;
+                //         let linkUrl = data.payment_links.web;
+                //         localStorage.setItem('orderid',orderid);
+                //         console.log("linkUrl ",linkUrl)
+                //         window.location.href = linkUrl;
+                //       }
+                //     })
+                //     .catch((error) => {
+                //       console.error('There was a problem with the fetch operation:', error);
+                //     });
             }
     
             // Clear the cart by deleting the items
@@ -216,6 +246,9 @@ const Cart = () => {
             getCartItems();
         } catch (err) {
             console.error('Error creating order:', err);
+        }
+        finally {
+            setLoader(false);
         }
     };
     
@@ -257,7 +290,7 @@ const Cart = () => {
                 const startDate = new Date(couponData.startDate);
                 const endDate = new Date(couponData.endDate);
 
-                if (currentDate >= startDate && currentDate <= endDate&&couponData.isActive) {
+                if (currentDate >= startDate && currentDate <= endDate && couponData.isActive) {
                     setIsCouponValid(true);
                     console.log('Coupon is valid');
                 } else {
@@ -296,6 +329,11 @@ const Cart = () => {
     }, [cartItems]);
 
     return (
+        <>
+         {
+            loader &&
+            <Loader />
+        }
         <div className="min-h-screen flex flex-col justify-between mt-32 md:mt-28">
             <Navbar />
             {cartItems && cartItems.length > 0 ?
@@ -359,6 +397,7 @@ const Cart = () => {
             </div>
             <FooterComponent />
         </div>
+        </>
     );
 }
 
