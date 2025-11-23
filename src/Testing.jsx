@@ -27,8 +27,10 @@ const PaymentStatus = () => {
 
   const updateOrderStatus = async (orderId, orderStatus) => {
     try {
+      console.log("Updating order status for Order ID:", orderId, "to", orderStatus?.orderStatus);
       const ordersRef = collection(firestore, "orderDetails");
-      const q = query(ordersRef, where("paymentStatus", "not-in", ["Aborted"]));
+      const q = query(ordersRef, where('orderId', '==', orderId ), where("paymentStatus", "not-in", ["Aborted"]) )
+      // const q = query(ordersRef, where("paymentStatus", "not-in", ["Aborted"]));
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
