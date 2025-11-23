@@ -5,6 +5,7 @@ import { firestore } from '../firebase/FirebaseConfig';
 import { useNavigate } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
 import { cartTotalAtom } from '../store/atoms/totalCartQuantity';
+import { toast, ToastContainer } from 'react-toastify';
 
 const CartItem = (props) => {
     const [editable, setEditable] = useState(false);
@@ -90,6 +91,7 @@ const CartItem = (props) => {
             await deleteDoc(docDel);
             setCartTotal(prevTotal => prevTotal - quantity);
             props.getCartItems();
+            toast.success("Your product is from the cart!", { autoClose: 2000 });
         } catch (err) {
             console.error(err);
         }
