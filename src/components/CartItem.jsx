@@ -115,8 +115,8 @@ const CartItem = (props) => {
         />
     ), []);
     return (
+        <>
         <div className="h-auto lg:h-auto flex md:grid grid-cols-8 mb-6 rounded-lg border px-2 py-2">
-            {toastContainer}
             {/* Product Image */}
             <img
                 src={props.product.productImage}
@@ -236,6 +236,8 @@ const CartItem = (props) => {
                 </div>
             </div>
         </div>
+        {toastContainer}
+        </>
     );
 };
 
