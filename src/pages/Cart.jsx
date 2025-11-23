@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
-import { collection, doc, getDocs,getDoc, addDoc,query, where, setDoc, Timestamp, deleteDoc } from 'firebase/firestore';
+import { collection, doc, getDocs,getDoc, addDoc,query, where, setDoc, Timestamp, deleteDoc, updateDoc } from 'firebase/firestore';
 import { firestore } from '../firebase/FirebaseConfig';
 import CartTotal from '../components/CartTotal';
 import CartItem from '../components/CartItem';
@@ -162,6 +162,15 @@ const Cart = () => {
            // console.log("after ",orderDetails)
             localStorage.setItem("orderDetails",JSON.stringify(orderDetails))
             const orderDetails1 = localStorage.getItem('orderDetails')
+            const orderDate = Timestamp.now();
+            const randomId = generateRandomId();
+            const orderDetailsId = await addDoc(collection(firestore, 'orderDetails'), {
+                ...orderDetails,
+                paymentStatus: 'Pending',
+                transactionId: null,
+                orderDate: orderDate,
+                orderId: randomId
+            });
            // console.log("order function  ",JSON.parse(orderDetails1));
             if (isCouponValid) {
                 // Save order details directly without payment, generating a new document with a unique ID
@@ -176,7 +185,6 @@ const Cart = () => {
                 clearCart();
                 alert('Your Order Successfully Placed');
             } else {
-                const randomId = generateRandomId();
                 const payload = {
                     amount: Number(cartTotal),
                     name: `${firstName || ''} ${lastName || ''}`.trim(),
