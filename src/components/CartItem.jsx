@@ -1,6 +1,6 @@
 import { CheckCircleIcon, PencilIcon, TrashIcon } from '@heroicons/react/20/solid';
 import { doc, getDoc, collection, updateDoc, deleteDoc, getDocs, query, where } from 'firebase/firestore';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { firestore } from '../firebase/FirebaseConfig';
 import { useNavigate } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
@@ -91,7 +91,8 @@ const CartItem = (props) => {
             await deleteDoc(docDel);
             setCartTotal(prevTotal => prevTotal - quantity);
             props.getCartItems();
-            toast.success("Your product is from the cart!", { autoClose: 2000 });
+            console.log("Item deleted successfully");
+            toast.success("Product is removed from the cart!", { autoClose: 2000 });
         } catch (err) {
             console.error(err);
         }
@@ -100,9 +101,22 @@ const CartItem = (props) => {
     const calculatedPrice = props.product.discountPrice
         ? props.product.discountPrice
         : props.product.pricePerPiece * quantity;
-
+    const toastContainer = useMemo(() => (
+        <ToastContainer
+            position="top-right"
+            autoClose={2000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+        />
+    ), []);
     return (
         <div className="h-auto lg:h-auto flex md:grid grid-cols-8 mb-6 rounded-lg border px-2 py-2">
+            {toastContainer}
             {/* Product Image */}
             <img
                 src={props.product.productImage}
