@@ -58,13 +58,25 @@ const CartTotal = ({ cartItems, onCheckout }) => {
                     </div>
                 )}
             </div>
-            {(cartTotal >=2) && <button
-                className="mt-6 w-full rounded-md bg-blue-500 py-2 font-medium text-white hover:bg-blue-400"
-                disabled={cartTotal <2}
+            {cartTotal >= 2 && (
+            <>
+                <button
+                className={`mt-6 w-full rounded-md py-2 font-medium text-white 
+                    ${cartTotal < 5000 ? "bg-gray-400 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-400"}`}
+                disabled={cartTotal < 5000}
                 onClick={onCheckout}
-            >
+                >
                 PROCEED TO CHECKOUT
-            </button>}
+                </button>
+
+                {/* Error message */}
+                {cartTotal < 5000 && (
+                <p className="mt-2 text-sm text-red-500">
+                    Minimum cart value must be ₹5000 to proceed.
+                </p>
+                )}
+            </>
+            )}
         </div>
     );
 }
