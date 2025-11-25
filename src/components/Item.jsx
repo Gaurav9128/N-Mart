@@ -407,6 +407,9 @@ const Item = (props) => {
                             <span className="h-8 w-8 border bg-white text-center text-black text-xs outline-none py-2">{quantity}</span>
                             <button className={` " bg-blue-500 hover:bg-blue-300"} h-8 text-white text-xl rounded-r  px-3 duration-100`} onClick={increaseQuantity}> + </button>
                         </div>
+                        <div>
+                            <h2 className='asdasd text-xs flex flex-col gap-1'><span className='text-gray-500 font-bold'>Total</span><span className='text-black'>{total}</span></h2>
+                        </div>
                     </div>
                 </div>
 
