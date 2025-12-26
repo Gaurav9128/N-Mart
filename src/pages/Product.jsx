@@ -32,6 +32,7 @@ const Product = () => {
   const [discount1, setDiscount1] = useState(0);
   const [discount2, setDiscount2] = useState(0);
   const [relatedProducts, setRelatedProducts] = useState([]);
+  const [addingToCart, setAddingToCart] = useState(false);
 
   const { id } = useParams();
 
