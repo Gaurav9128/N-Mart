@@ -215,11 +215,12 @@ const Product = () => {
               <div className="md:flex-1 px-4">
                 <div className="h-64 md:h-80 rounded-lg bg-white mb-4 flex items-center justify-center">
   <img
-    src={activeImage}
-    alt="Product"
-    className="max-h-full max-w-full object-contain"
-    loading="eager"
-  />
+  src={activeImage}
+  alt="Product"
+  className="w-full h-full object-contain"
+  loading="lazy"
+  decoding="async"
+/>
 </div>
                 <div className="flex gap-2 mb-4">
                   {product.image.map((img, idx) => (
