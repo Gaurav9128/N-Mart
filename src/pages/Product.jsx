@@ -126,9 +126,11 @@ const Product = () => {
     return;
   }
 
-  try {
-    setAddingToCart(true); // 🔥 start loading
+  // ✅ INSTANT FEEDBACK
+  toast.success('Product added to cart 🛒');
+  setAddingToCart(true);
 
+  try {
     const cartRef = collection(firestore, 'carts');
     const q = query(cartRef, where('userId', '==', localStorage.getItem('userId')));
     const querySnapshot = await getDocs(q);
@@ -150,8 +152,7 @@ const Product = () => {
     const itemDoc = await getDocs(itemQuery);
 
     if (!itemDoc.empty) {
-      const existingItem = itemDoc.docs[0];
-      await updateDoc(existingItem.ref, {
+      await updateDoc(itemDoc.docs[0].ref, {
         quantity,
         pricePerPiece,
       });
@@ -167,13 +168,11 @@ const Product = () => {
         productBrand: product.brand,
       });
     }
-
-    toast.success('Product added to cart 🛒'); // ✅ SUCCESS TOAST
   } catch (err) {
     console.error(err);
-    toast.error('Something went wrong');
+    toast.error('Failed to add product');
   } finally {
-    setAddingToCart(false); // 🔥 stop loading
+    setAddingToCart(false);
   }
 };
 
@@ -304,11 +303,11 @@ const Product = () => {
                     <button
   onClick={addToCart}
   disabled={addingToCart}
-  className={`mt-2 w-full rounded-md flex gap-2 py-2 justify-center items-center 
-    ${addingToCart ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-400'}`}
+  className={`w-full rounded-md py-2 flex justify-center items-center gap-2
+    ${addingToCart ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-400'}`}
 >
-  <ShoppingCartIcon className="w-auto h-5 text-white" />
-  <span className="text-white font-medium text-sm">
+  <ShoppingCartIcon className="h-5 text-white" />
+  <span className="text-white text-sm font-medium">
     {addingToCart ? 'Adding...' : 'Add To Cart'}
   </span>
 </button>
