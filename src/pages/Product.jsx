@@ -119,53 +119,61 @@ const Product = () => {
   };
 
   const addToCart = async () => {
-    try {
-      const cartRef = collection(firestore, 'carts');
-      if (localStorage.getItem('userId')) {
-        const q = query(cartRef, where('userId', '==', localStorage.getItem('userId')));
-        const querySnapshot = await getDocs(q);
-        let cartId;
+  if (!localStorage.getItem('userId')) {
+    toast.error('Please sign in first');
+    return;
+  }
 
-        if (querySnapshot.empty) {
-          const docRef = await addDoc(cartRef, { userId: localStorage.getItem('userId') });
-          cartId = docRef.id;
-        } else {
-          cartId = querySnapshot.docs[0].id;
-        }
+  try {
+    setAddingToCart(true); // 🔥 start loading
 
-        const itemsCollection = collection(firestore, 'carts', cartId, 'items');
-        const itemQuery = query(
-          itemsCollection,
-          where('productId', '==', id),
-          where('variantId', '==', selectedVariant.variationId)
-        );
-        const itemDoc = await getDocs(itemQuery);
+    const cartRef = collection(firestore, 'carts');
+    const q = query(cartRef, where('userId', '==', localStorage.getItem('userId')));
+    const querySnapshot = await getDocs(q);
 
-        if (!itemDoc.empty) {
-          itemDoc.forEach(async (idoc) => {
-            const itemRef = doc(firestore, 'carts', cartId, 'items', idoc.id);
-            await updateDoc(itemRef, { pricePerPiece, quantity });
-          });
-        } else {
-          await addDoc(itemsCollection, {
-            productId: id,
-            variantId: selectedVariant.variationId,
-            quantity,
-            productImage: product.image,
-            productTitle: product.title,
-            pricePerPiece,
-            variantName: selectedVariant.name,
-            productBrand: product.brand,
-          });
-        }
-      } else {
-        alert('Sign in first');
-        return;
-      }
-    } catch (err) {
-      console.error(err);
+    let cartId;
+    if (querySnapshot.empty) {
+      const docRef = await addDoc(cartRef, { userId: localStorage.getItem('userId') });
+      cartId = docRef.id;
+    } else {
+      cartId = querySnapshot.docs[0].id;
     }
-  };
+
+    const itemsCollection = collection(firestore, 'carts', cartId, 'items');
+    const itemQuery = query(
+      itemsCollection,
+      where('productId', '==', id),
+      where('variantId', '==', selectedVariant.variationId)
+    );
+    const itemDoc = await getDocs(itemQuery);
+
+    if (!itemDoc.empty) {
+      const existingItem = itemDoc.docs[0];
+      await updateDoc(existingItem.ref, {
+        quantity,
+        pricePerPiece,
+      });
+    } else {
+      await addDoc(itemsCollection, {
+        productId: id,
+        variantId: selectedVariant.variationId,
+        quantity,
+        productImage: activeImage,
+        productTitle: product.title,
+        pricePerPiece,
+        variantName: selectedVariant.name,
+        productBrand: product.brand,
+      });
+    }
+
+    toast.success('Product added to cart 🛒'); // ✅ SUCCESS TOAST
+  } catch (err) {
+    console.error(err);
+    toast.error('Something went wrong');
+  } finally {
+    setAddingToCart(false); // 🔥 stop loading
+  }
+};
 
   const handleQuantityChange = (e) => {
     const inputValue = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
@@ -292,12 +300,16 @@ const Product = () => {
                       </h2>
                     </div>
                     <button
-                      className="mt-2 w-full rounded-md flex gap-2 py-2 justify-center items-center bg-blue-500 hover:bg-blue-400"
-                      onClick={addToCart}
-                    >
-                      <ShoppingCartIcon className="w-auto h-5 text-white" />
-                      <span className="text-white font-medium text-sm">Add To Cart</span>
-                    </button>
+  onClick={addToCart}
+  disabled={addingToCart}
+  className={`mt-2 w-full rounded-md flex gap-2 py-2 justify-center items-center 
+    ${addingToCart ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-400'}`}
+>
+  <ShoppingCartIcon className="w-auto h-5 text-white" />
+  <span className="text-white font-medium text-sm">
+    {addingToCart ? 'Adding...' : 'Add To Cart'}
+  </span>
+</button>
                   </div>
                 </div>
               )}
