@@ -204,9 +204,14 @@ const Product = () => {
             <div className="flex flex-col md:flex-row -mx-4">
               {/* Product Image Section */}
               <div className="md:flex-1 px-4">
-                <div className="h-64 md:h-80 rounded-lg bg-gray-100 mb-4 flex items-center justify-center">
-                  <img src={activeImage} alt="Zoomable" className="h-full object-contain" />
-                </div>
+                <div className="h-64 md:h-80 rounded-lg bg-white mb-4 flex items-center justify-center">
+  <img
+    src={activeImage}
+    alt="Product"
+    className="max-h-full max-w-full object-contain"
+    loading="eager"
+  />
+</div>
                 <div className="flex gap-2 mb-4">
                   {product.image.map((img, idx) => (
                     <button
