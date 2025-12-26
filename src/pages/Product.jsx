@@ -3,6 +3,7 @@ import { RadioGroup } from '@headlessui/react';
 import Navbar from '../components/Navbar';
 import { ShoppingCartIcon } from '@heroicons/react/20/solid';
 import { firestore } from '../firebase/FirebaseConfig';
+import { toast } from 'react-toastify';
 import {
   doc,
   getDoc,
