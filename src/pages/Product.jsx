@@ -1,373 +1,306 @@
-import React, { useState, useEffect } from 'react';
-import { RadioGroup } from '@headlessui/react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Navbar from '../components/Navbar';
-import { ShoppingCartIcon } from '@heroicons/react/20/solid';
-import { firestore } from '../firebase/FirebaseConfig';
-import { toast } from 'react-toastify';
+// Sabhi zaroori icons yahan import hain
 import {
-  doc,
-  getDoc,
-  query,
-  where,
-  collection,
-  getDocs,
-  addDoc,
-  updateDoc,
-} from 'firebase/firestore';
-import { useParams } from 'react-router-dom';
+    ShoppingCartIcon,
+    PlusIcon,
+    MinusIcon,
+    CheckCircleIcon,
+    XCircleIcon
+} from '@heroicons/react/24/solid';
+import { firestore } from '../firebase/FirebaseConfig';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { doc, getDoc, query, where, collection, getDocs, addDoc, updateDoc } from 'firebase/firestore';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
 import { cartTotalAtom } from '../store/atoms/totalCartQuantity';
-import '../App.css';
 import FooterComponent from '../components/FooterComponent';
 
 const Product = () => {
-  const [product, setProduct] = useState();
-  const [prices, setPrices] = useState([[]]);
-  const [activeImage, setActiveImage] = useState();
-  const [variations, setVariations] = useState([]);
-  const [selectedVariant, setSelectedVariant] = useState();
-  const [quantity, setQuantity] = useState(0);
-  const [total, setTotal] = useState(0);
-  const [pricePerPiece, setPricePerPiece] = useState(0);
-  const [cartTotal, setCartTotal] = useRecoilState(cartTotalAtom);
-  const [discount1, setDiscount1] = useState(0);
-  const [discount2, setDiscount2] = useState(0);
-  const [relatedProducts, setRelatedProducts] = useState([]);
-  const [addingToCart, setAddingToCart] = useState(false);
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const [product, setProduct] = useState(null);
+    const [prices, setPrices] = useState([]);
+    const [activeImage, setActiveImage] = useState("");
+    const [variations, setVariations] = useState([]);
+    const [selectedVariant, setSelectedVariant] = useState(null);
+    const [quantity, setQuantity] = useState(1);
+    const [addingToCart, setAddingToCart] = useState(false);
+    const [relatedProducts, setRelatedProducts] = useState([]);
+    const [cartTotal, setCartTotal] = useRecoilState(cartTotalAtom);
 
-  const { id } = useParams();
+    useEffect(() => {
+        getProductDetails();
+        window.scrollTo(0, 0);
+    }, [id]);
 
-  useEffect(() => {
-    getProductDetails();
-  }, []);
-
-  useEffect(() => {
-    if (prices.length > 0 && prices[0][0] !== undefined) {
-      const minQuantity = prices[0][0];
-      setQuantity(minQuantity);
-      setPricePerPiece(prices[0][2]);
-      setTotal(minQuantity * prices[0][2]);
-    }
-  }, [prices]);
-
-  const getProductDetails = async () => {
-    const productRef = doc(firestore, 'products', id);
-    const prod = await getDoc(productRef);
-    const data = prod.data();
-
-    if (data) {
-      setDiscount1(data.discount1);
-      setDiscount2(data.discount2);
-      setProduct(data);
-      setActiveImage(data.image);
-      getVariationData();
-      getRelatedProducts(data.category, data.brand);
-    }
-  };
-
-  const getRelatedProducts = async (category, brand) => {
-    try {
-      const q = query(
-        collection(firestore, 'products'),
-        where('category', '==', category),
-        where('brand', '==', brand)
-      );
-      const querySnapshot = await getDocs(q);
-      let related = [];
-      querySnapshot.forEach((docSnap) => {
-        if (docSnap.id !== id) {
-          related.push({ id: docSnap.id, ...docSnap.data() });
+    const getProductDetails = async () => {
+        const productRef = doc(firestore, 'products', id);
+        const prod = await getDoc(productRef);
+        if (prod.exists()) {
+            const data = prod.data();
+            setProduct(data);
+            setActiveImage(Array.isArray(data.image) ? data.image[0] : data.image);
+            getVariationData();
+            getRelatedProducts(data.category, data.brand);
         }
-      });
-      setRelatedProducts(related);
-    } catch (error) {
-      console.error('Error fetching related products:', error);
-    }
-  };
+    };
 
-  const getPricesData = async (variationId) => {
-    const docRef = collection(firestore, 'products', id, 'variations', variationId, 'prices');
-    const docSnap = await getDocs(docRef);
-    let pricesArray = [];
-    let i = 0;
-    docSnap.forEach((doc) => {
-      if (!pricesArray[i]) pricesArray[i] = [];
-      pricesArray[i][0] = doc.data().minQuantity;
-      pricesArray[i][1] = doc.data().maxQuantity;
-      pricesArray[i][2] = doc.data().price;
-      i++;
-    });
-    setPrices(pricesArray);
-  };
+    const getVariationData = async () => {
+        const docRef = collection(firestore, 'products', id, 'variations');
+        const docSnap = await getDocs(docRef);
+        const newData = docSnap.docs.map(doc => ({ variationId: doc.id, ...doc.data() }));
+        setVariations(newData);
+        if (newData.length > 0) {
+            setSelectedVariant(newData[0]);
+            getPricesData(newData[0].variationId);
+        }
+    };
 
-  const getVariationData = async () => {
-    const docRef = collection(firestore, 'products', id, 'variations');
-    const docSnap = await getDocs(docRef);
-    const newData = docSnap.docs.map((doc) => ({
-      variationId: doc.id,
-      ...doc.data(),
-    }));
-    setVariations(newData);
-    if (newData.length > 0) {
-      setSelectedVariant(newData[0]);
-      getPricesData(newData[0].variationId);
-    }
-  };
+    const getPricesData = async (vId) => {
+        const docRef = collection(firestore, 'products', id, 'variations', vId, 'prices');
+        const docSnap = await getDocs(docRef);
+        const pArray = docSnap.docs.map(doc => [doc.data().minQuantity, doc.data().maxQuantity, doc.data().price]);
+        setPrices(pArray);
+        if (pArray.length > 0) setQuantity(pArray[0][0]);
+    };
 
-  const handleVariantChange = (v) => {
-    const variant = variations.find((variation) => variation.name === v);
-    setSelectedVariant(variant);
-    getPricesData(variant.variationId);
-  };
+    const getRelatedProducts = async (cat, brand) => {
+        const q = query(collection(firestore, 'products'), where('category', '==', cat));
+        const snap = await getDocs(q);
+        setRelatedProducts(snap.docs.filter(d => d.id !== id).map(d => ({ id: d.id, ...d.data() })));
+    };
 
-  const addToCart = async () => {
-  if (!localStorage.getItem('userId')) {
-    toast.error('Please sign in first');
-    return;
-  }
+    const currentPricePerPiece = useMemo(() => {
+        const p = prices.find(p => quantity >= p[0] && quantity <= p[1]);
+        return p ? p[2] : (prices[0] ? prices[0][2] : 0);
+    }, [prices, quantity]);
 
-  // ✅ INSTANT FEEDBACK
-  toast.success('Product added to cart 🛒');
-  setAddingToCart(true);
+    const totalAmount = (quantity * currentPricePerPiece).toFixed(2);
 
-  try {
-    const cartRef = collection(firestore, 'carts');
-    const q = query(cartRef, where('userId', '==', localStorage.getItem('userId')));
-    const querySnapshot = await getDocs(q);
+    const addToCart = async () => {
+        const userId = localStorage.getItem('userId');
+        if (!userId) {
+            toast.error('Please sign in first');
+            return;
+        }
+        setAddingToCart(true);
+        try {
+            const cartRef = collection(firestore, 'carts');
+            const q = query(cartRef, where('userId', '==', userId));
+            const querySnapshot = await getDocs(q);
+            let cartId;
+            if (querySnapshot.empty) {
+                const docRef = await addDoc(cartRef, { userId });
+                cartId = docRef.id;
+            } else {
+                cartId = querySnapshot.docs[0].id;
+            }
+            const itemsCollection = collection(firestore, 'carts', cartId, 'items');
+            const itemQuery = query(itemsCollection, where('productId', '==', id), where('variantId', '==', selectedVariant.variationId));
+            const itemDoc = await getDocs(itemQuery);
 
-    let cartId;
-    if (querySnapshot.empty) {
-      const docRef = await addDoc(cartRef, { userId: localStorage.getItem('userId') });
-      cartId = docRef.id;
-    } else {
-      cartId = querySnapshot.docs[0].id;
-    }
+            if (!itemDoc.empty) {
+                await updateDoc(itemDoc.docs[0].ref, { quantity, pricePerPiece: currentPricePerPiece });
+            } else {
+                await addDoc(itemsCollection, {
+                    productId: id, variantId: selectedVariant.variationId, quantity,
+                    productImage: activeImage, productTitle: product.title,
+                    pricePerPiece: currentPricePerPiece, variantName: selectedVariant.name, productBrand: product.brand,
+                });
+            }
+            toast.success('Added to Bag! 🛒');
+        } catch (err) {
+            toast.error('Failed to add product');
+        } finally {
+            setAddingToCart(false);
+        }
+    };
 
-    const itemsCollection = collection(firestore, 'carts', cartId, 'items');
-    const itemQuery = query(
-      itemsCollection,
-      where('productId', '==', id),
-      where('variantId', '==', selectedVariant.variationId)
-    );
-    const itemDoc = await getDocs(itemQuery);
+    return (
+        <div className="bg-[#FAFAFA] min-h-screen">
+            <Navbar />
+            <ToastContainer position="top-right" autoClose={2000} />
 
-    if (!itemDoc.empty) {
-      await updateDoc(itemDoc.docs[0].ref, {
-        quantity,
-        pricePerPiece,
-      });
-    } else {
-      await addDoc(itemsCollection, {
-        productId: id,
-        variantId: selectedVariant.variationId,
-        quantity,
-        productImage: activeImage,
-        productTitle: product.title,
-        pricePerPiece,
-        variantName: selectedVariant.name,
-        productBrand: product.brand,
-      });
-    }
-  } catch (err) {
-    console.error(err);
-    toast.error('Failed to add product');
-  } finally {
-    setAddingToCart(false);
-  }
-};
+            {product && selectedVariant && (
+                <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-16">
 
-  const handleQuantityChange = (e) => {
-    const inputValue = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
-    setQuantity(inputValue);
-    let newPricePerPiece = 0;
-    let newTotal = 0;
-    for (let i = 0; i < prices.length; i++) {
-      if (inputValue >= prices[i][0] && inputValue <= prices[i][1]) {
-        newPricePerPiece = prices[i][2];
-        newTotal = inputValue * prices[i][2];
-        break;
-      }
-    }
-    setPricePerPiece(newPricePerPiece);
-    setTotal(newTotal);
-  };
+                    {/* Top Buy Card Section */}
+                    <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden mb-16">
+                        <div className="flex flex-col lg:flex-row">
+                            {/* Left: Product Images */}
+                            <div className="lg:w-1/2 p-8 md:p-12 border-r border-gray-50 flex flex-col items-center bg-white">
+                                <div className="aspect-square w-full max-w-md flex items-center justify-center overflow-hidden mb-8 transition-all">
+                                    <img src={activeImage} className="w-full h-full object-contain hover:scale-110 transition-transform duration-700" alt="Main Product" />
+                                </div>
+                                <div className="flex gap-4 overflow-x-auto w-full justify-center scrollbar-hide">
+                                    {Array.isArray(product.image) && product.image.map((img, idx) => (
+                                        <button key={idx} onClick={() => setActiveImage(img)} className={`shrink-0 w-16 h-16 rounded-2xl border-2 transition-all p-1.5 ${activeImage === img ? 'border-blue-600 bg-white shadow-md' : 'border-transparent bg-gray-50'}`}>
+                                            <img src={img} className="w-full h-full object-contain" alt="Thumbnail" />
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
 
-  const increaseQuantity = () => {
-    const newQuantity = quantity + 1;
-    setQuantity(newQuantity);
-    handleQuantityChange({ target: { value: newQuantity } });
-  };
+                            {/* Right: Product Interaction */}
+                            <div className="lg:w-1/2 p-8 md:p-12 flex flex-col justify-center">
+                                <div className="mb-10">
+                                    <span className="text-blue-600 font-black uppercase tracking-[0.2em] text-[10px] bg-blue-50 px-4 py-1.5 rounded-full">{product.brand}</span>
+                                    <h1 className="text-3xl md:text-5xl font-black text-gray-900 mt-6 leading-tight tracking-tight">
+                                        {product.title} <br /> <span className="text-gray-300 font-medium text-2xl md:text-3xl">| {selectedVariant.name}</span>
+                                    </h1>
+                                </div>
 
-  const decreaseQuantity = () => {
-    const newQuantity = quantity - 1;
-    setQuantity(newQuantity);
-    handleQuantityChange({ target: { value: newQuantity } });
-  };
+                                <div className="flex items-center gap-8 mb-12">
+                                    <div>
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Selling Price</p>
+                                        <div className="flex items-center gap-4">
+                                            <span className="text-4xl font-black text-gray-900 tracking-tighter">₹{currentPricePerPiece}</span>
+                                            <span className="text-xl text-gray-300 line-through font-bold">₹{(currentPricePerPiece * 1.25).toFixed(0)}</span>
+                                        </div>
+                                    </div>
+                                    <div className="h-12 w-[1px] bg-gray-100"></div>
+                                    <div className="flex flex-col">
+                                        <span className="text-green-600 font-black text-xs bg-green-50 px-3 py-1 rounded-full uppercase tracking-wider">Save 25% OFF</span>
+                                        <p className="text-[9px] text-gray-400 mt-1 font-bold">Inclusive of all taxes</p>
+                                    </div>
+                                </div>
 
-  return (
-    <div className="pt-20">
-      <Navbar />
-      {product && (
-        <>
-          <div className="mt-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col md:flex-row -mx-4">
-              {/* Product Image Section */}
-              <div className="md:flex-1 px-4">
-                <div className="h-64 md:h-80 rounded-lg bg-white mb-4 flex items-center justify-center">
-  <img
-  src={activeImage}
-  alt="Product"
-  className="w-full h-full object-contain"
-  loading="lazy"
-  decoding="async"
-/>
-</div>
-                <div className="flex gap-2 mb-4">
-                  {product.image.map((img, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setActiveImage(img)}
-                      className={`rounded-lg h-24 md:h-32 bg-gray-100 flex items-center justify-center ${
-                        activeImage === img ? 'ring-2 ring-indigo-300 ring-inset' : ''
-                      }`}
-                    >
-                      <img className="object-cover w-full h-full" src={img} alt="" />
-                    </button>
-                  ))}
-                </div>
-              </div>
+                                <div className="mb-10">
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 block">Choose Variation</label>
+                                    <div className="flex flex-wrap gap-3">
+                                        {variations.map((v) => (
+                                            <button key={v.variationId} onClick={() => { setSelectedVariant(v); getPricesData(v.variationId); }} className={`px-6 py-3 rounded-2xl text-[11px] font-black border-2 transition-all uppercase tracking-wider ${selectedVariant.variationId === v.variationId ? 'border-blue-600 bg-blue-600 text-white shadow-xl shadow-blue-100' : 'border-gray-100 text-gray-400 bg-white hover:border-gray-300'}`}>
+                                                {v.name}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
 
-              {/* Product Info Section */}
-              {selectedVariant && (
-                <div className="md:flex-1 px-4">
-                  <h2 className="mb-2 text-2xl md:text-3xl font-bold text-gray-800">
-                    {product.title}:{' '}
-                    <span className="text-md font-normal">{selectedVariant.name}</span>
-                  </h2>
-                  <p className="text-gray-500 text-sm">
-                    By <span className="text-indigo-600">{product.brand}</span>
-                  </p>
-
-                  <RadioGroup
-                    value={selectedVariant}
-                    onChange={handleVariantChange}
-                    className="py-8 border-b"
-                  >
-                    <RadioGroup.Label>Variant</RadioGroup.Label>
-                    <div className="flex gap-2">
-                      {variations.map((variation) => (
-                        <RadioGroup.Option
-                          key={variation.name}
-                          value={variation.name}
-                          className="mt-4 border rounded-md border-gray-400 w-28 p-4 text-center"
-                        >
-                          {variation.name}
-                        </RadioGroup.Option>
-                      ))}
+                                <div className="flex flex-col sm:flex-row items-center gap-6">
+                                    <div className="flex items-center bg-gray-50 rounded-2xl p-1.5 border border-gray-100 w-full sm:w-auto">
+                                        <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="w-12 h-12 flex items-center justify-center bg-white rounded-xl shadow-sm hover:text-red-500 transition-all active:scale-90"><MinusIcon className="w-4 h-4" /></button>
+                                        <span className="w-16 text-center font-black text-2xl text-gray-800">{quantity}</span>
+                                        <button onClick={() => setQuantity(q => q + 1)} className="w-12 h-12 flex items-center justify-center bg-white rounded-xl shadow-sm hover:text-green-500 transition-all active:scale-90"><PlusIcon className="w-4 h-4" /></button>
+                                    </div>
+                                    <button disabled={addingToCart} onClick={addToCart} className="flex-grow w-full bg-gray-900 hover:bg-blue-600 text-white py-5 rounded-[1.5rem] font-black uppercase tracking-[0.15em] flex items-center justify-center gap-3 transition-all active:scale-95 disabled:bg-gray-300 shadow-xl shadow-gray-200">
+                                        <ShoppingCartIcon className="h-5 w-5" />
+                                        {addingToCart ? 'Adding to Bag...' : 'Add to Bag'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                  </RadioGroup>
 
-                  <div className="flex flex-col pt-4 pb-8 space-y-12 border-b">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center border-gray-100">
-                        <button
-                          className={`${
-                            quantity > 0 ? 'bg-blue-500 hover:bg-blue-300' : 'bg-gray-200'
-                          } text-white cursor-pointer rounded-l py-1 px-3.5`}
-                          disabled={quantity < 1}
-                          onClick={decreaseQuantity}
-                        >
-                          -
-                        </button>
-                        <input
-                          className="h-8 w-14 border bg-white text-center text-black text-xs outline-none py-2"
-                          type="number"
-                          value={quantity}
-                          onChange={handleQuantityChange}
-                        />
-                        <button
-                          className="bg-blue-500 hover:bg-blue-300 h-8 text-white text-xl rounded-r px-3"
-                          onClick={increaseQuantity}
-                        >
-                          +
-                        </button>
-                      </div>
-                      <h2 className="text-xs flex flex-col gap-1">
-                        <span className="text-gray-500 font-bold">Rs/pc</span>
-                        <span className="text-black">{pricePerPiece}</span>
-                      </h2>
-                      <h2 className="text-xs flex flex-col gap-1">
-                        <span className="text-gray-500 font-bold">Total</span>
-                        <span className="text-black">{total}</span>
-                      </h2>
-                    </div>
-                    <button
-  onClick={addToCart}
-  disabled={addingToCart}
-  className={`w-full rounded-md py-2 flex justify-center items-center gap-2
-    ${addingToCart ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-400'}`}
->
-  <ShoppingCartIcon className="h-5 text-white" />
-  <span className="text-white text-sm font-medium">
-    {addingToCart ? 'Adding...' : 'Add To Cart'}
-  </span>
-</button>
-                  </div>
-                </div>
-              )}
-            </div>
+                    {/* Screenshot Inspired Sections: Description & Benefits */}
+                    <div className="grid lg:grid-cols-3 gap-16 items-start">
 
-            {/* Description */}
-            <div className="w-full px-2 py-16 sm:px-0">
-              <h1 className="text-2xl underline mb-4">Description</h1>
-              <p className="text-lg font-normal">{product.description}</p>
-            </div>
+                        <div className="lg:col-span-2 space-y-16">
 
-            {/* ✅ Related Products Section (no price, no Add to Cart) */}
-            {relatedProducts.length > 0 && (
-              <div className="w-full px-2 py-16 sm:px-0">
-                <h1 className="text-2xl underline mb-6">Related Products</h1>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                  {relatedProducts.map((item) => (
-                    <div
-                      key={item.id}
-                      className="border rounded-2xl p-4 shadow-sm hover:shadow-md transition flex flex-col"
-                    >
-                      <div
-                        className="w-full h-48 flex items-center justify-center bg-white rounded-md mb-3 overflow-hidden cursor-pointer"
-                        onClick={() => (window.location.href = `/product/${item.id}`)}
-                      >
-                        <img
-                          src={Array.isArray(item.image) ? item.image[0] : item.image}
-                          alt={item.title}
-                          className="max-h-48 w-auto object-contain"
-                        />
-                      </div>
+                            {/* 1. Yellow Promo Banner (Premium Admin Description) */}
+                            <div className="bg-[#FFD944] rounded-[3rem] p-12 md:p-20 relative overflow-hidden shadow-inner">
+                                <div className="relative z-10 text-center">
+                                    <p className="text-[10px] font-black uppercase tracking-[0.5em] text-yellow-900 mb-6">Premium Selection</p>
+                                    <h2 className="text-3xl md:text-5xl font-black text-gray-900 leading-[1.1] tracking-tight mb-10">
+                                        Clean Ingredients. <br className="hidden md:block" />
+                                        <span className="text-yellow-800 italic">Trusted by Experts.</span>
+                                    </h2>
 
-                      <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1">
-                        {item.brand}
-                      </p>
+                                    {/* Professional Admin Description Formatting */}
+                                    <div
+                                        className="mt-8 text-sm md:text-lg font-medium text-gray-800 max-w-3xl mx-auto 
+                                                   leading-[1.8] md:leading-[2.2] admin-description whitespace-pre-line text-center opacity-90"
+                                        dangerouslySetInnerHTML={{ __html: product.description }}
+                                    />
+                                </div>
+                                {/* Subtle Light Accents */}
+                                <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-yellow-300 rounded-full blur-[80px] opacity-40"></div>
+                                <div className="absolute -top-20 -right-20 w-64 h-64 bg-yellow-200 rounded-full blur-[80px] opacity-30"></div>
+                            </div>
 
-                      <h2
-                        className="font-semibold text-gray-800 truncate mb-2 cursor-pointer hover:text-blue-500"
-                        onClick={() => (window.location.href = `/product/${item.id}`)}
-                      >
-                        {item.title}
-                      </h2>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-          {/* ✅ Add Footer here */}
-          <FooterComponent />
-        </>
-      )}
-    </div>
+                            {/* 2. Highlight Feature Box (Screenshot Design) */}
+                            <div className="bg-white rounded-[3.5rem] border border-gray-100 p-12 flex flex-col md:flex-row items-center gap-14 shadow-sm">
+                                <div className="w-64 h-80 bg-[#F9F9F9] rounded-[2.5rem] flex items-center justify-center p-8 border border-gray-50 shrink-0">
+                                    <img src={activeImage} className="w-full h-full object-contain" alt="Pack Detail" />
+                                </div>
+
+                                <div className="flex-grow space-y-10 text-center md:text-left">
+    <h3 className="text-3xl md:text-4xl font-black text-gray-900 leading-none tracking-tight">
+        Skip the duplicates. <br/> 
+        <span className="text-orange-500 underline decoration-4 underline-offset-[12px]">Shop the Brand Vault.</span>
+    </h3>
     
-  );
-};
+    <div className="grid gap-5 max-w-md mx-auto md:mx-0">
+        <div className="flex items-center gap-5 bg-blue-50/60 p-5 rounded-2xl border border-blue-100/60">
+            <CheckCircleIcon className="w-7 h-7 text-blue-500 shrink-0" />
+            <p className="text-[11px] font-black text-blue-800 uppercase tracking-[0.15em] text-left">
+                Every Product Batch-Verified for Authenticity
+            </p>
+        </div>
+        
+        <div className="flex items-center gap-5 bg-orange-50/60 p-5 rounded-2xl border border-orange-100/60">
+            <XCircleIcon className="w-7 h-7 text-orange-400 shrink-0" />
+            <p className="text-[11px] font-black text-orange-800 uppercase tracking-[0.15em] text-left">
+                No Near-Expiry Goods – Only Fresh Market Stock
+            </p>
+        </div>
+    </div>
+</div>
+                            </div>
 
+                            {/* 3. Numbered Brand Standards Grid */}
+                            <section>
+                                <div className="flex items-center gap-5 mb-12">
+                                    <div className="h-[4px] w-14 bg-orange-500 rounded-full"></div>
+                                    <h2 className="text-xs font-black uppercase tracking-[0.4em] text-gray-900">Brand Promise</h2>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {[
+                                        { title: "Safe Packaging", desc: "Tamper-proof and moisture-sealed for ultimate product freshness." },
+                                        { title: "Express Dispatch", desc: "Priority shipping to get your essentials to you as fast as possible." },
+                                        { title: "Direct Sourced", desc: "100% original product sourced directly from brand official inventory." },
+                                        { title: "Fresh Batch", desc: "We ensure all products have the longest possible available shelf life." }
+                                    ].map((benefit, i) => (
+                                        <div key={i} className="group flex items-start gap-6 p-8 bg-white rounded-[2.5rem] border border-gray-100 hover:border-blue-200 transition-all shadow-sm hover:shadow-xl hover:shadow-gray-100/50">
+                                            <span className="flex-shrink-0 w-12 h-12 bg-gray-900 text-white rounded-full flex items-center justify-center text-[14px] font-black group-hover:bg-blue-600 transition-all duration-300">
+                                                {i + 1}
+                                            </span>
+                                            <div>
+                                                <h4 className="text-lg font-black text-gray-900 mb-2 uppercase tracking-tight">{benefit.title}</h4>
+                                                <p className="text-[12px] text-gray-400 font-medium leading-relaxed">{benefit.desc}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                        </div>
+
+                        {/* Sidebar: Similar Items (Fixed & Clean) */}
+                        <aside className="space-y-10 sticky top-32">
+                            <h3 className="text-xs font-black text-gray-900 px-3 uppercase tracking-[0.4em] mb-6">Similar Items</h3>
+                            <div className="grid gap-5">
+                                {relatedProducts.slice(0, 5).map(item => (
+                                    <div key={item.id} onClick={() => navigate(`/product/${item.id}`)} className="bg-white p-5 rounded-[2rem] border border-gray-50 flex items-center gap-6 cursor-pointer hover:border-blue-200 transition-all group shadow-sm">
+                                        <div className="w-24 h-24 bg-gray-50 rounded-2xl shrink-0 overflow-hidden border border-gray-100">
+                                            <img src={Array.isArray(item.image) ? item.image[0] : item.image} className="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-500" alt="Related" />
+                                        </div>
+                                        <div className="flex-grow">
+                                            <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">{item.brand}</p>
+                                            <h4 className="text-sm font-bold text-gray-800 line-clamp-2 group-hover:text-blue-600 leading-snug">{item.title}</h4>
+                                            <p className="text-[11px] font-black text-gray-900 mt-3 uppercase tracking-tighter inline-flex items-center gap-1 group-hover:translate-x-1 transition-transform">View Details →</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </aside>
+                    </div>
+                </main>
+            )}
+            <FooterComponent />
+        </div>
+    );
+};
 
 export default Product;

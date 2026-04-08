@@ -1,5 +1,5 @@
 import { CheckCircleIcon, PencilIcon, TrashIcon } from '@heroicons/react/20/solid';
-import { doc, getDoc, collection, updateDoc, deleteDoc, getDocs, query, where } from 'firebase/firestore';
+import { doc, collection, updateDoc, deleteDoc, getDocs, query, where } from 'firebase/firestore';
 import React, { useEffect, useMemo, useState } from 'react';
 import { firestore } from '../firebase/FirebaseConfig';
 import { useNavigate } from 'react-router-dom';
@@ -91,16 +91,20 @@ const CartItem = (props) => {
             await deleteDoc(docDel);
             setCartTotal(prevTotal => prevTotal - quantity);
             props.getCartItems();
-            console.log("Item deleted successfully");
             toast.success("Product is removed from the cart!", { autoClose: 2000 });
         } catch (err) {
             console.error(err);
         }
     };
 
-    const calculatedPrice = props.product.discountPrice
-        ? props.product.discountPrice
-        : props.product.pricePerPiece * quantity;
+    // ✅ FIXED DECIMAL PRECISION: Number formatting added
+    const calculatedPrice = useMemo(() => {
+        const rawPrice = props.product.discountPrice
+            ? props.product.discountPrice
+            : props.product.pricePerPiece * quantity;
+        return Number(rawPrice).toFixed(2);
+    }, [props.product.discountPrice, props.product.pricePerPiece, quantity]);
+
     const toastContainer = useMemo(() => (
         <ToastContainer
             position="top-right"
@@ -114,126 +118,79 @@ const CartItem = (props) => {
             pauseOnHover
         />
     ), []);
+
     return (
         <>
-        <div className="h-auto lg:h-auto flex md:grid grid-cols-8 mb-6 rounded-lg border px-2 py-2">
+        <div className="h-auto flex flex-col md:grid md:grid-cols-12 mb-6 rounded-xl border px-4 py-4 bg-white shadow-sm items-center gap-4">
             {/* Product Image */}
-            <img
-                src={props.product.productImage}
-                alt="product"
-                className="h-28 w-24 object-contain col-span-2 md:col-span-1 p-2 rounded-lg"
-            />
+            <div className="col-span-2 md:col-span-1 flex justify-center">
+                <img
+                    src={props.product.productImage}
+                    alt="product"
+                    className="h-20 w-20 object-contain p-1 rounded-lg border bg-gray-50"
+                />
+            </div>
 
-            {/* Product Info */}
-            <div className="col-span-6 md:col-span-7 lg:grid grid-cols-7 sm:mx-4 w-full sm:justify-between">
-                <div className="mt-2 lg:mt-5 flex flex-col col-span-3 justify-center">
+            {/* Product Info & Price */}
+            <div className="col-span-10 md:col-span-7 flex flex-col md:grid md:grid-cols-7 w-full gap-2">
+                <div className="col-span-4 flex flex-col justify-center">
                     <h2
-                        className="text-sm md:text-xl font-normal text-black hover:underline cursor-pointer"
+                        className="text-sm md:text-base font-bold text-black hover:underline cursor-pointer line-clamp-2"
                         onClick={() => navigate(`/product/${props.product.productId}`)}
                     >
-                        {props.product.productTitle} : {props.product.variantName}
+                        {props.product.productTitle}
                     </h2>
-                    <p className="mt-1 text-xs md:text-xl text-gray-600">
-                        Variant: <span className="text-black font-medium">{props.product.variantName}</span>
+                    <p className="text-xs text-gray-500 mt-1">
+                        Variant: <span className="text-black font-semibold">{props.product.variantName}</span>
                     </p>
-
-                    {/* ✅ "You Pay" visible on mobile */}
-                    <div className="flex lg:hidden mt-2 text-black font-semibold">
-                        <span className="text-xs text-gray-600 mr-1">You Pay:</span>
-                        <span className="text-base">₹{calculatedPrice}</span>
-                    </div>
                 </div>
 
-                {/* Price (visible on desktop) */}
-                <h2 className="hidden text-sm md:text-xl lg:flex text-black font-medium justify-center items-center">
+                {/* Desktop Price */}
+                <div className="hidden md:flex col-span-3 items-center justify-center font-black text-blue-600 text-lg">
                     ₹{calculatedPrice}
-                </h2>
-
-                {/* Quantity Editor (desktop) */}
-                <div className="hidden mt-4 lg:flex flex-col justify-center items-center sm:mt-0">
-                    <div className="flex gap-1 items-center border-gray-100">
-                        {!editable ? (
-                            <PencilIcon className="h-5 w-5 md:h-6 md:w-6 cursor-pointer" onClick={handleEditClick} />
-                        ) : (
-                            <div className="h-6 w-6" />
-                        )}
-                        <div className="flex flex-col gap-1 items-center">
-                            <label htmlFor="quantity" className="text-md font-medium">Qty</label>
-                            <input
-                                type="number"
-                                id="quantity"
-                                name="quantity"
-                                value={quantity}
-                                onChange={(e) =>
-                                    setQuantity(Math.min(Math.max(parseInt(e.target.value), minQuantity), maxQuantity))
-                                }
-                                className="w-10 md:w-12 p-2 rounded-lg text-center border"
-                                disabled={!editable}
-                                min={minQuantity}
-                                max={maxQuantity}
-                            />
-                        </div>
-                        {editable ? (
-                            <CheckCircleIcon className="h-6 w-6 text-green-600 cursor-pointer" onClick={handleSaveClick} />
-                        ) : (
-                            <div className="h-6 w-6" />
-                        )}
-                    </div>
-                    {editable && <p className="text-xs">Click to save</p>}
                 </div>
 
-                {/* Delete (desktop) */}
-                <div className="hidden lg:flex justify-center items-center cursor-pointer">
-                    <TrashIcon
-                        className="mb-1 h-7 w-auto text-red-600 hover:text-red-500"
-                        onClick={deleteCartItem}
-                    />
+                {/* Mobile Price View */}
+                <div className="flex md:hidden items-center justify-between mt-2 border-t pt-2">
+                    <span className="text-xs text-gray-500 font-bold uppercase">Price:</span>
+                    <span className="text-lg font-black text-blue-600">₹{calculatedPrice}</span>
                 </div>
+            </div>
 
-                {/* ✅ Mobile bottom actions */}
-                <div className="mt-3 flex lg:hidden justify-around w-full items-center">
-                    {/* Quantity Edit */}
-                    <div className="flex gap-1 items-center border-gray-100">
-                        {!editable ? (
-                            <PencilIcon
-                                className="h-5 w-5 sm:h-6 sm:w-6 cursor-pointer"
-                                onClick={handleEditClick}
-                            />
-                        ) : (
-                            <div className="h-5 w-5 sm:h-6 sm:w-6" />
-                        )}
-                        <div className="flex flex-col gap-1 items-center">
-                            <label htmlFor="quantity" className="text-md font-medium">Qty</label>
-                            <input
-                                type="number"
-                                id="quantity"
-                                name="quantity"
-                                value={quantity}
-                                onChange={(e) =>
-                                    setQuantity(Math.min(Math.max(parseInt(e.target.value), minQuantity), maxQuantity))
-                                }
-                                className="w-10 sm:w-12 py-2 rounded-lg text-center border"
-                                disabled={!editable}
-                                min={minQuantity}
-                                max={maxQuantity}
-                            />
-                        </div>
-                        {editable ? (
-                            <CheckCircleIcon
-                                className="h-6 w-6 text-green-600 cursor-pointer"
-                                onClick={handleSaveClick}
-                            />
-                        ) : (
-                            <div className="h-6 w-6" />
-                        )}
+            {/* Quantity Control & Actions */}
+            <div className="col-span-12 md:col-span-4 flex items-center justify-between md:justify-around w-full border-t md:border-t-0 pt-4 md:pt-0">
+                {/* Quantity Editor */}
+                <div className="flex gap-2 items-center">
+                    {!editable ? (
+                        <PencilIcon className="h-5 w-5 text-gray-400 cursor-pointer hover:text-blue-500" onClick={handleEditClick} />
+                    ) : (
+                        <div className="h-5 w-5" />
+                    )}
+                    
+                    <div className="flex flex-col items-center">
+                        <span className="text-[10px] text-gray-400 font-bold uppercase">Qty</span>
+                        <input
+                            type="number"
+                            value={quantity}
+                            onChange={(e) => setQuantity(parseInt(e.target.value) || 0)}
+                            className={`w-12 p-1 text-center border rounded-lg font-bold text-sm ${editable ? 'bg-white border-blue-500' : 'bg-gray-50 border-transparent'}`}
+                            disabled={!editable}
+                            min={minQuantity}
+                            max={maxQuantity}
+                        />
                     </div>
 
-                    {/* Delete Button */}
-                    <TrashIcon
-                        className="mb-1 h-7 w-auto text-red-600 hover:text-red-500 cursor-pointer"
-                        onClick={deleteCartItem}
-                    />
+                    {editable ? (
+                        <CheckCircleIcon className="h-6 w-6 text-green-600 cursor-pointer animate-pulse" onClick={handleSaveClick} />
+                    ) : (
+                        <div className="h-6 w-6" />
+                    )}
                 </div>
+
+                {/* Delete Button */}
+                <button onClick={deleteCartItem} className="p-2 hover:bg-red-50 rounded-full transition-colors group">
+                    <TrashIcon className="h-6 w-6 text-red-500 group-hover:text-red-600" />
+                </button>
             </div>
         </div>
         {toastContainer}

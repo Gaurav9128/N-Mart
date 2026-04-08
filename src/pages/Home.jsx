@@ -1,82 +1,150 @@
-import React, { useEffect, useState } from 'react'
-import Navbar from '../components/Navbar'
-import CategorySlider from '../components/CategorySlider';
-import { Carousel } from 'flowbite-react';
-import FooterComponent from '../components/FooterComponent';
-import CategoryBanner from '../components/CategoryBanner';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAuth, onAuthStateChanged } from "firebase/auth";
-import { UserVerifiedStatus } from '../hooks/useAuth';
+import { Carousel } from 'flowbite-react';
+import Navbar from '../components/Navbar';
+import CategorySlider from '../components/CategorySlider';
+import FooterComponent from '../components/FooterComponent';
 import BestSeller from '../components/BestSeller';
 import TrendingProducts from '../components/TrendingProducts';
 import FeaturesSection from '../components/FeaturesSection';
 
-
 const Home = () => {
-
   const navigate = useNavigate();
-  const verify = UserVerifiedStatus();
-  console.log("h", verify)
 
+  // 1. Top Banners Data
+  const topBanners = [
+    { src: "https://firebasestorage.googleapis.com/v0/b/ajmerclient.appspot.com/o/product-images%2Fdownload%20(4).jpg?alt=media&token=b4599828-ea13-4eee-9c82-9157d03af443", path: "/category/hairShampoossc2-aesc-Hair%20Shampoos" },
+    { src: "https://firebasestorage.googleapis.com/v0/b/ajmerclient.appspot.com/o/product-images%2F06c5f85b3891bbbe6e36a2a38096e4f4.jpg?alt=media&token=b889744f-9f90-4b10-8b20-20296c35cda5", path: "/category/faceCreamsc2-aesc-Face%20Cream" },
+    { src: "https://firebasestorage.googleapis.com/v0/b/ajmerclient.appspot.com/o/product-images%2FBlog_Banner_1024x1024.webp?alt=media&token=5a47789a-f5d2-463c-b9b2-cb5569c66e4f", path: "/category/faceMasksc2-aesc-Face%20Mask" },
+    { src: "https://firebasestorage.googleapis.com/v0/b/ajmerclient.appspot.com/o/product-images%2FCOL0035_A1.jpeg?alt=media&token=7035bdef-b74f-47f4-b559-8cfabdbe4f45", path: "/category/toothpastesc2-aesc-ToothPaste" }
+  ];
 
+  // 2. Bottom Banners Data (Including your new Hair Comb link)
+  const bottomBanners = [
+  {
+    src: "https://firebasestorage.googleapis.com/v0/b/ajmerclient.appspot.com/o/product-images%2F8fce3e6684d8251a23d2b0c1a055cd49.jpg?alt=media&token=6a216520-2a00-4cf8-94c2-6854bd372b17",
+    path: "/category/men'sdeos&perfumessc2-aesc-Men's%20Deos%20&%20Perfumes"
+  },
+  {
+    src: "https://firebasestorage.googleapis.com/v0/b/ajmerclient.appspot.com/o/product-images%2FFacewash_Website_Media_Banner_2160_x_741.webp?alt=media&token=4ede902c-4d92-4668-ad77-e0d6b5a0494b",
+    path: "/category/hairOilssc2-aesc-Hair Oil"
+  },
+  {
+    src: "https://firebasestorage.googleapis.com/v0/b/ajmerclient.appspot.com/o/product-images%2F06c5f85b3891bbbe6e36a2a38096e4f4.jpg?alt=media&token=b889744f-9f90-4b10-8b20-20296c35cda5",
+    path: "/category/faceCreamsc2-aesc-Face%20Cream"
+  }
+];
 
   return (
-    <div className='bg-gray-100'>
+    <div className='bg-[#f9f9f9] min-h-screen overflow-x-hidden pb-10'>
       <Navbar />
-     <div className="max-w-11/12 mt-28 md:mt-[110px] h-60 md:h-72 lg:h-96 xl:h-[450px] 2xl:h-[550px]">
-        <Carousel indicators={false} leftControl=" " rightControl=" ">
-          <img className='h-full' onClick={() => { navigate("/category/hairShampoossc2-aesc-Hair%20Shampoos") }} src="https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2F1.jpg?alt=media&token=30371cb2-2277-4456-a6df-b3e23f62ace4" alt="..." />
-          <img className='h-full' onClick={() => { navigate("/category/faceCreamsc2-aesc-Face%20Cream") }} src="https://firebasestorage.googleapis.com/v0/b/ajmerclient.appspot.com/o/product-images%2F06c5f85b3891bbbe6e36a2a38096e4f4.jpg?alt=media&token=b889744f-9f90-4b10-8b20-20296c35cda5" alt="..." />
-          <img className='h-full' onClick={() => { navigate("/category/faceMasksc2-aesc-Face%20Mask") }} src="https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2F3.png?alt=media&token=10e5a6d2-f280-4f05-9256-3f6787a93c40" alt="..." />
-          <img className='h-full' onClick={() => { navigate("/category/creams&Lotionssc2-aesc-Creams%20&%20Lotions") }} src="https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2F4.jpg?alt=media&token=b26c48e8-5df8-40e2-81f3-a4a2f287f85a" alt="..." />
-          <img className='h-full' onClick={() => { navigate("/category/freshenerssc2-aesc-Fresheners") }} src="https://firebasestorage.googleapis.com/v0/b/ajmerclient.appspot.com/o/product-images%2FSummer%20Sale%20Cosmetics%20ADS%20-%20Made%20with%20PosterMyWall.jpg?alt=media&token=aac1bda2-4107-4973-8648-d1c1e442bbdb" alt="..." />
-          <img className='h-full' onClick={() => { navigate("/category/toothpastesc2-aesc-ToothPaste") }} src="https://firebasestorage.googleapis.com/v0/b/ajmerclient.appspot.com/o/product-images%2FCOL0035_A1.jpeg?alt=media&token=7035bdef-b74f-47f4-b559-8cfabdbe4f45" alt="..." />
-          <img className='h-full' onClick={() => { navigate("/category/eyelinerssc2-aesc-Eyeliners") }} src="https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2F7.jpeg?alt=media&token=ad75d0a2-a17f-4d58-ad0a-b68923f42479" alt="..." />
-          <img className='h-full' onClick={() => { navigate("/category/hairShampoossc2-aesc-Hair%20Shampoos") }} src="https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2F8.png?alt=media&token=52f0419d-e4d1-4a4d-8a21-eed0852c8c87" alt="..." />
-          <img className='h-full' onClick={() => { navigate("/category/hairOilsc2-aesc-Hair%20Oil") }} src="https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2F9.jpeg?alt=media&token=2bebf3b7-8fd7-4920-8f6b-a8522d46e77c" alt="..." />
 
-        </Carousel>
-      </div>
-      <div className='relative mt-40 bg-white mt-8 md:mt-12 lg:mt-10 border-2 rounded-md py-2 px-4 w-11/12 mx-auto'>
-        <CategorySlider />
-      </div>
-      {/* 🏆 Best Seller Section */}
-      <div className='relative mt-8 bg-white border-2 rounded-md py-4 px-4 w-11/12 mx-auto'>
-        <BestSeller />
+      {/* 🚀 TOP CAROUSEL */}
+      <div className="max-w-[1400px] mx-auto mt-24 md:mt-28 px-4">
+        <div className="h-56 sm:h-72 md:h-96 lg:h-[480px] rounded-2xl overflow-hidden shadow-lg border">
+          <Carousel slideInterval={4000} pauseOnHover>
+            {topBanners.map((banner, idx) => (
+              <div key={idx} className="h-full w-full bg-white cursor-pointer" onClick={() => navigate(banner.path)}>
+                <img src={banner.src} className="h-full w-full object-cover md:object-fill" alt="banner" />
+              </div>
+            ))}
+          </Carousel>
+        </div>
       </div>
 
-      <div className='relative mt-8 bg-white border-2 rounded-md py-4 px-4 w-11/12 mx-auto'>
-        <TrendingProducts />
+      {/* 📦 CATEGORY SLIDER (Arrows fixed inside container) */}
+      <div className='max-w-[1400px] mx-auto mt-10 px-4'>
+        <div className='relative bg-white border border-gray-100 rounded-xl shadow-sm py-6 px-10 overflow-hidden'>
+          <h2 className="text-xl font-bold mb-4 text-gray-800">Shop By Category</h2>
+          <div className="category-slider-wrapper relative">
+             <CategorySlider />
+          </div>
+        </div>
       </div>
 
-      <div className='mt-4 sm:mt-6 w-11/12 mx-auto p-1 sm:p-2 md:p-6 border-2 rounded-md bg-white'>
-        <img className='w-full cursor-pointer' onClick={() => { navigate("/search?searchItem=beardo") }} src="https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2F10.jpeg?alt=media&token=552c85f3-51eb-4bcd-a1f3-ed4c40cea3fb" alt="..." />
+      {/* 🏆 PRODUCT SECTIONS */}
+      <div className='max-w-[1400px] mx-auto mt-8 px-4 space-y-10'>
+        <section className='bg-white border rounded-2xl p-6 shadow-sm'><BestSeller /></section>
+        <section className='bg-white border rounded-2xl p-6 shadow-sm'><TrendingProducts /></section>
       </div>
 
-      <div className='mt-4 sm:mt-6 w-11/12 mx-auto p-1 sm:p-2 md:p-6 border-2 rounded-md bg-white'>
-        <img className='w-full cursor-pointer' onClick={() => { navigate("/category/soapssc2-aesc-Soaps") }} src="https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2F15.jpeg?alt=media&token=8f523e95-0596-456e-81ad-93e3764225ec" alt="..." />
-      </div>
+      {/* 🖼️ MIDDLE STATIC BANNERS (Grid) */}
+      <div className="max-w-[1400px] mx-auto px-4 mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">
 
-      <div className='mt-4 sm:mt-6 w-11/12 mx-auto p-1 sm:p-2 md:p-6 border-2 rounded-md bg-white'>
-        <img className='w-full cursor-pointer' onClick={() => { navigate("/category/faceWashsc2-aesc-Face%20Wash") }} src="https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2F16.jpeg?alt=media&token=776e8182-dfb0-42fe-aa97-7dd5869beccd" alt="..." />
-      </div>
+  <div className="w-full h-[220px] bg-gray-100 rounded-xl shadow-sm flex items-center justify-center overflow-hidden cursor-pointer hover:scale-[1.02] transition-all"
+       onClick={() => navigate("/search?searchItem=beardo")}>
+    <img
+      className="max-h-full max-w-full object-contain"
+      src="https://firebasestorage.googleapis.com/v0/b/ajmerclient.appspot.com/o/product-images%2FBeard_banner_2ed8daef-d5c0-4cf9-b9f1-c220f4418a71.webp?alt=media&token=03bfa2c1-0ed3-42c6-ba69-6f143a187d75"
+      alt="beardo"
+    />
+  </div>
 
-      <div className='relative mt-8 bg-white border-2 rounded-md py-4 px-4 w-11/12 mx-auto'>
+  <div className="w-full h-[220px] bg-gray-100 rounded-xl shadow-sm flex items-center justify-center overflow-hidden cursor-pointer hover:scale-[1.02] transition-all"
+       onClick={() => navigate("/category/soapssc2-aesc-Soaps")}>
+    <img
+      className="max-h-full max-w-full object-contain"
+      src="https://firebasestorage.googleapis.com/v0/b/ajmerclient.appspot.com/o/product-images%2FWeb%20Banner%20Design%20-%20Al%20Imran.jpg?alt=media&token=c4aaf95f-f73c-4f5d-a2e6-460fd8f8a871"
+      alt="soaps"
+    />
+  </div>
+
+  <div className="w-full h-[220px] bg-gray-100 rounded-xl shadow-sm flex items-center justify-center overflow-hidden cursor-pointer hover:scale-[1.02] transition-all"
+       onClick={() => navigate("/category/faceWashsc2-aesc-Face%20Wash")}>
+    <img
+      className="max-h-full max-w-full object-contain"
+      src="https://firebasestorage.googleapis.com/v0/b/ajmerclient.appspot.com/o/product-images%2Fb4356ec366b314a491e8a5d71c1c3ae7.jpg?alt=media&token=72868d13-3304-40e3-b882-577fd61c7c4f"
+      alt="facewash"
+    />
+  </div>
+
+</div>
+
+      {/* 🛡️ FEATURES */}
+      <div className='max-w-[1400px] mx-auto mt-10 px-4'>
         <FeaturesSection />
       </div>
 
-      <div className='my-4 sm:mt-6 w-11/12 h-[150px] sm:h-96 mx-auto p-1 sm:p-2 md:p-6 border-2 rounded-md bg-white'>
-        <Carousel indicators={false} leftControl=" " rightControl=" ">
-          <img className='h-full cursor-pointer' onClick={() => { navigate("/category/men'sdeos&perfumessc2-aesc-Men's%20Deos%20&%20Perfumes") }} src="https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2F18.jpeg?alt=media&token=9fa52f95-3823-4dc8-8c73-083e547640f1" alt="..." />
-          <img className='h-full cursor-pointer' onClick={() => { navigate("/category/hairOilssc2-aesc-Hair Oil") }} src="https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2F11.jpg?alt=media&token=edca1043-ffa0-4513-9b73-2d9e8b7ed6f1" alt="..." />
-          <img className='h-full cursor-pointer' onClick={() => { navigate("/category/HairCombSc2-aesc-Hair%20Comb") }} src="https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2F12.jpeg?alt=media&token=0c008f80-b862-4a8d-90e9-dbc6bf61e1a3" alt="..." />
-          <img className='h-full cursor-pointer' onClick={() => { navigate("/category/faceCreamsc2-aesc-Face%20Cream") }} src="https://firebasestorage.googleapis.com/v0/b/ajmerstore-7d3af.appspot.com/o/assets%2F13.jpeg?alt=media&token=c65dd4d1-9987-4a4c-974f-35bbec6bce8e" alt="..." />
-
-        </Carousel>
+      {/* 📱 BOTTOM CAROUSEL (Restore) */}
+      <div className='max-w-[1400px] mx-auto mt-10 mb-10 px-4'>
+        <div className='h-48 md:h-80 rounded-2xl overflow-hidden shadow-lg border bg-white'>
+          <Carousel indicators={false} leftControl=" " rightControl=" ">
+            {bottomBanners.map((banner, idx) => (
+              <div key={idx} className="h-full w-full cursor-pointer" onClick={() => navigate(banner.path)}>
+                <img src={banner.src} className="h-full w-full object-cover" alt="bottom banner" />
+              </div>
+            ))}
+          </Carousel>
+        </div>
       </div>
-      <FooterComponent />
-    </div>
-  )
-}
 
-export default Home
+      <FooterComponent />
+
+      {/* 🛠️ CSS TO FIX SIDE ARROWS */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        .category-slider-wrapper .slick-prev, 
+        .category-slider-wrapper .slick-next {
+          z-index: 20;
+          width: 45px;
+          height: 45px;
+          background: #fff !important;
+          border-radius: 50%;
+          box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+          display: flex !important;
+          align-items: center;
+          justify-content: center;
+        }
+        .category-slider-wrapper .slick-prev { left: -15px; }
+        .category-slider-wrapper .slick-next { right: -15px; }
+        .category-slider-wrapper .slick-prev:before, 
+        .category-slider-wrapper .slick-next:before {
+          color: #333 !important;
+          font-size: 26px;
+          opacity: 1;
+        }
+      `}} />
+    </div>
+  );
+};
+
+export default Home;
