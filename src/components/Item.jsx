@@ -1,7 +1,6 @@
 import { 
     collection, 
     doc, 
-    getDoc, 
     getDocs, 
     query, 
     where, 
@@ -16,7 +15,7 @@ import { ChevronUpDownIcon } from '@heroicons/react/20/solid';
 import { ShoppingBagIcon } from '@heroicons/react/24/outline';
 import { useRecoilState } from 'recoil';
 import { cartTotalAtom } from '../store/atoms/totalCartQuantity';
-import Swal from 'sweetalert2'; // ✅ SweetAlert2 Import
+import Swal from 'sweetalert2';
 
 const Item = (props) => {
     const [prices, setPrices] = useState([]);
@@ -26,17 +25,12 @@ const Item = (props) => {
     const navigate = useNavigate();
     const [cartTotal, setCartTotal] = useRecoilState(cartTotalAtom);
 
-    // ✅ SweetAlert2 Toast Configuration (Faster & Cleaner)
     const Toast = Swal.mixin({
         toast: true,
         position: 'top-end',
         showConfirmButton: false,
         timer: 1500,
         timerProgressBar: true,
-        didOpen: (toast) => {
-            toast.addEventListener('mouseenter', Swal.stopTimer)
-            toast.addEventListener('mouseleave', Swal.resumeTimer)
-        }
     });
 
     const getPricesData = async (variationId) => {
@@ -148,72 +142,76 @@ const Item = (props) => {
                 });
                 Toast.fire({ icon: 'success', title: 'Added to cart!' });
             }
-
             getCartTotal();
-
         } catch (err) {
-            console.error("Cart Error:", err);
             Toast.fire({ icon: 'error', title: 'Failed to update cart' });
         }
     };
 
     return (
-        <div className="group bg-white rounded-2xl border border-gray-100 hover:border-blue-200 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full overflow-hidden">
+        <div className="group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col h-full overflow-hidden">
             {!selectedVariant ? (
-                <div className="h-80 flex items-center justify-center animate-pulse bg-gray-50 text-gray-400 text-xs">
-                    Loading Product...
+                <div className="h-64 flex items-center justify-center animate-pulse bg-gray-50 text-gray-400 text-[10px]">
+                    Loading...
                 </div>
             ) : (
                 <>
-                    <div className="relative aspect-square bg-gray-50 p-4 cursor-pointer overflow-hidden" onClick={() => navigate(`/product/${props.id}`)}>
-                        <img src={props.image} alt={props.title} className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500" />
+                    {/* Image Section - Reduced padding for mobile */}
+                    <div className="relative aspect-square bg-gray-50 p-2 md:p-4 cursor-pointer overflow-hidden" onClick={() => navigate(`/product/${props.id}`)}>
+                        <img src={props.image} alt={props.title} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />
                     </div>
 
-                    <div className="p-4 flex flex-col flex-grow">
-                        <span className="text-[10px] text-blue-500 font-bold uppercase tracking-wider">{props.brand}</span>
-                        <h3 className="text-sm font-semibold text-gray-800 line-clamp-2 h-10 mb-2 hover:text-blue-600 cursor-pointer" onClick={() => navigate(`/product/${props.id}`)}>
+                    <div className="p-3 flex flex-col flex-grow">
+                        <span className="text-[9px] text-blue-500 font-bold uppercase tracking-tight">{props.brand}</span>
+                        
+                        {/* Title - adjusted height for consistency */}
+                        <h3 className="text-[12px] md:text-sm font-semibold text-gray-800 line-clamp-2 h-8 md:h-10 mb-2 leading-tight hover:text-blue-600 cursor-pointer" onClick={() => navigate(`/product/${props.id}`)}>
                             {props.title}
                         </h3>
 
+                        {/* Variant Selector - Compact for mobile */}
                         <Listbox value={selectedVariant.name} onChange={(name) => {
                             const v = variations.find(varnt => varnt.name === name);
                             setSelectedVariant(v);
                             getPricesData(v.variationId);
                         }}>
-                            <div className="relative mt-1">
-                                <Listbox.Button className="w-full py-1.5 pl-3 pr-8 text-left bg-gray-50 border border-gray-200 rounded-lg text-xs">
+                            <div className="relative">
+                                <Listbox.Button className="w-full py-1 pl-2 pr-6 text-left bg-gray-50 border border-gray-200 rounded-md text-[11px]">
                                     <span className="block truncate">{selectedVariant.name}</span>
-                                    <span className="absolute inset-y-0 right-0 flex items-center pr-2"><ChevronUpDownIcon className="h-4 w-4 text-gray-400" /></span>
+                                    <span className="absolute inset-y-0 right-0 flex items-center pr-1"><ChevronUpDownIcon className="h-3 w-3 text-gray-400" /></span>
                                 </Listbox.Button>
                                 <Transition as={Fragment} leave="transition ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0">
-                                    <Listbox.Options className="absolute z-20 mt-1 max-h-40 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black/5 text-xs focus:outline-none">
+                                    <Listbox.Options className="absolute bottom-full mb-1 z-30 max-h-40 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black/5 text-[11px] focus:outline-none">
                                         {variations.map((v, i) => (
-                                            <Listbox.Option key={i} value={v.name} className={({ active }) => `cursor-pointer select-none py-2 pl-4 pr-4 ${active ? 'bg-blue-50 text-blue-700' : 'text-gray-900'}`}>{v.name}</Listbox.Option>
+                                            <Listbox.Option key={i} value={v.name} className={({ active }) => `cursor-pointer select-none py-2 px-2 ${active ? 'bg-blue-50 text-blue-700' : 'text-gray-900'}`}>{v.name}</Listbox.Option>
                                         ))}
                                     </Listbox.Options>
                                 </Transition>
                             </div>
                         </Listbox>
 
-                        <div className="mt-4 flex items-center justify-between">
+                        {/* Price & Qty Row */}
+                        <div className="mt-3 flex items-center justify-between gap-1">
                             <div>
-                                <p className="text-[10px] text-gray-400 font-bold">PRICE</p>
-                                <p className="text-lg font-black text-gray-900">₹{pricePerPiece}</p>
+                                <p className="text-[8px] text-gray-400 font-bold">PRICE</p>
+                                <p className="text-sm md:text-base font-black text-gray-900">₹{pricePerPiece}</p>
                             </div>
-                            <div className="flex items-center bg-gray-100 rounded-lg p-1">
-                                <button onClick={() => setQuantity(q => Math.max(minQty, q - 1))} className="w-6 h-6 bg-white rounded shadow-sm text-gray-600 hover:text-red-500">-</button>
-                                <span className="px-3 text-xs font-bold">{quantity}</span>
-                                <button onClick={() => setQuantity(q => Math.min(maxQty, q + 1))} className="w-6 h-6 bg-white rounded shadow-sm text-gray-600 hover:text-green-500">+</button>
+                            <div className="flex items-center bg-gray-100 rounded-md p-0.5">
+                                <button onClick={() => setQuantity(q => Math.max(minQty, q - 1))} className="w-5 h-5 bg-white rounded shadow-sm text-xs">-</button>
+                                <span className="px-1.5 text-[10px] font-bold">{quantity}</span>
+                                <button onClick={() => setQuantity(q => Math.min(maxQty, q + 1))} className="w-5 h-5 bg-white rounded shadow-sm text-xs">+</button>
                             </div>
                         </div>
 
-                        <div className="mt-3 pt-3 border-t border-gray-50 flex justify-between items-center text-[11px]">
-                            <span className="text-gray-500 italic">Total: <span className="text-gray-900 font-bold">₹{total}</span></span>
+                        {/* Stats Row */}
+                        <div className="mt-2 pt-2 border-t border-gray-50 flex justify-between items-center text-[9px]">
+                            <span className="text-gray-500">Total: <span className="text-gray-900 font-bold">₹{total}</span></span>
                             <span className="text-gray-400">Stock: {maxQty}</span>
                         </div>
 
-                        <button onClick={addToCart} className="mt-4 w-full py-2.5 bg-gray-900 hover:bg-blue-600 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-gray-100">
-                            <ShoppingBagIcon className="h-4 w-4" /> Add to Cart
+                        {/* Add to Cart Button */}
+                        <button onClick={addToCart} className="mt-3 w-full py-2 bg-gray-900 hover:bg-blue-600 text-white rounded-lg text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95">
+                            <ShoppingBagIcon className="h-3.5 w-3.5" /> Add
                         </button>
                     </div>
                 </>
