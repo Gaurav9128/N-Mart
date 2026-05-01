@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Navbar from '../components/Navbar';
-// Sabhi zaroori icons yahan import hain
 import {
     ShoppingCartIcon,
     PlusIcon,
@@ -23,7 +22,7 @@ const Product = () => {
     const [product, setProduct] = useState(null);
     const [prices, setPrices] = useState([]);
     const [activeImage, setActiveImage] = useState("");
-    const [variations, setVariations] = useState([]);
+    const [variations, setVariations] = useState([]); 
     const [selectedVariant, setSelectedVariant] = useState(null);
     const [quantity, setQuantity] = useState(1);
     const [addingToCart, setAddingToCart] = useState(false);
@@ -77,7 +76,24 @@ const Product = () => {
         return p ? p[2] : (prices[0] ? prices[0][2] : 0);
     }, [prices, quantity]);
 
-    const totalAmount = (quantity * currentPricePerPiece).toFixed(2);
+    // --- ✅ FIXED DYNAMIC SAVINGS CALCULATION ---
+    const priceAnalysis = useMemo(() => {
+        const sellingPrice = parseFloat(currentPricePerPiece);
+        
+        // 1. Database se MRP uthao (selectedVariant ya product se)
+        // 2. Agar MRP nahi hai, toh use 0 rakho (fallback hata diya)
+        const mrpFromDB = selectedVariant?.mrp ? parseFloat(selectedVariant.mrp) : (product?.mrp ? parseFloat(product.mrp) : 0);
+        
+        // 3. Discount sirf tab calculate karo jab MRP Selling Price se badi ho
+        const hasDiscount = mrpFromDB > sellingPrice;
+        const discountPercentage = hasDiscount ? Math.round(((mrpFromDB - sellingPrice) / mrpFromDB) * 100) : 0;
+
+        return { 
+            mrp: mrpFromDB.toFixed(0), 
+            discount: discountPercentage,
+            showSaveSection: hasDiscount // Yeh decide karega ki discount dikhana hai ya nahi
+        };
+    }, [currentPricePerPiece, selectedVariant, product]);
 
     const addToCart = async () => {
         const userId = localStorage.getItem('userId');
@@ -126,10 +142,8 @@ const Product = () => {
             {product && selectedVariant && (
                 <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-16">
 
-                    {/* Top Buy Card Section */}
                     <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden mb-16">
                         <div className="flex flex-col lg:flex-row">
-                            {/* Left: Product Images */}
                             <div className="lg:w-1/2 p-8 md:p-12 border-r border-gray-50 flex flex-col items-center bg-white">
                                 <div className="aspect-square w-full max-w-md flex items-center justify-center overflow-hidden mb-8 transition-all">
                                     <img src={activeImage} className="w-full h-full object-contain hover:scale-110 transition-transform duration-700" alt="Main Product" />
@@ -143,7 +157,6 @@ const Product = () => {
                                 </div>
                             </div>
 
-                            {/* Right: Product Interaction */}
                             <div className="lg:w-1/2 p-8 md:p-12 flex flex-col justify-center">
                                 <div className="mb-10">
                                     <span className="text-blue-600 font-black uppercase tracking-[0.2em] text-[10px] bg-blue-50 px-4 py-1.5 rounded-full">{product.brand}</span>
@@ -157,21 +170,39 @@ const Product = () => {
                                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Selling Price</p>
                                         <div className="flex items-center gap-4">
                                             <span className="text-4xl font-black text-gray-900 tracking-tighter">₹{currentPricePerPiece}</span>
-                                            <span className="text-xl text-gray-300 line-through font-bold">₹{(currentPricePerPiece * 1.25).toFixed(0)}</span>
+                                            
+                                            {/* ✅ MRP cross line sirf tab jab asli discount ho */}
+                                            {priceAnalysis.showSaveSection && (
+                                                <span className="text-xl text-gray-300 line-through font-bold">₹{priceAnalysis.mrp}</span>
+                                            )}
                                         </div>
                                     </div>
-                                    <div className="h-12 w-[1px] bg-gray-100"></div>
-                                    <div className="flex flex-col">
-                                        <span className="text-green-600 font-black text-xs bg-green-50 px-3 py-1 rounded-full uppercase tracking-wider">Save 25% OFF</span>
-                                        <p className="text-[9px] text-gray-400 mt-1 font-bold">Inclusive of all taxes</p>
-                                    </div>
+
+                                    {/* ✅ "Save OFF" section sirf tab dikhega jab MRP database mein ho aur Selling Price se zyada ho */}
+                                    {priceAnalysis.showSaveSection ? (
+                                        <>
+                                            <div className="h-12 w-[1px] bg-gray-100"></div>
+                                            <div className="flex flex-col">
+                                                <span className="text-green-600 font-black text-xs bg-green-50 px-3 py-1 rounded-full uppercase tracking-wider">Save {priceAnalysis.discount}% OFF</span>
+                                                <p className="text-[9px] text-gray-400 mt-1 font-bold">Inclusive of all taxes</p>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="flex flex-col">
+                                            <p className="text-[9px] text-gray-400 mt-1 font-bold uppercase tracking-widest">Inclusive of all taxes</p>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="mb-10">
                                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 block">Choose Variation</label>
                                     <div className="flex flex-wrap gap-3">
                                         {variations.map((v) => (
-                                            <button key={v.variationId} onClick={() => { setSelectedVariant(v); getPricesData(v.variationId); }} className={`px-6 py-3 rounded-2xl text-[11px] font-black border-2 transition-all uppercase tracking-wider ${selectedVariant.variationId === v.variationId ? 'border-blue-600 bg-blue-600 text-white shadow-xl shadow-blue-100' : 'border-gray-100 text-gray-400 bg-white hover:border-gray-300'}`}>
+                                            <button 
+                                                key={v.variationId} 
+                                                onClick={() => { setSelectedVariant(v); getPricesData(v.variationId); }} 
+                                                className={`px-6 py-3 rounded-2xl text-[11px] font-black border-2 transition-all uppercase tracking-wider ${selectedVariant.variationId === v.variationId ? 'border-blue-600 bg-blue-600 text-white shadow-xl shadow-blue-100' : 'border-gray-100 text-gray-400 bg-white hover:border-gray-300'}`}
+                                            >
                                                 {v.name}
                                             </button>
                                         ))}
@@ -193,12 +224,8 @@ const Product = () => {
                         </div>
                     </div>
 
-                    {/* Screenshot Inspired Sections: Description & Benefits */}
                     <div className="grid lg:grid-cols-3 gap-16 items-start">
-
                         <div className="lg:col-span-2 space-y-16">
-
-                            {/* 1. Yellow Promo Banner (Premium Admin Description) */}
                             <div className="bg-[#FFD944] rounded-[3rem] p-12 md:p-20 relative overflow-hidden shadow-inner">
                                 <div className="relative z-10 text-center">
                                     <p className="text-[10px] font-black uppercase tracking-[0.5em] text-yellow-900 mb-6">Premium Selection</p>
@@ -206,78 +233,42 @@ const Product = () => {
                                         Clean Ingredients. <br className="hidden md:block" />
                                         <span className="text-yellow-800 italic">Trusted by Experts.</span>
                                     </h2>
-
-                                    {/* Professional Admin Description Formatting */}
                                     <div
-                                        className="mt-8 text-sm md:text-lg font-medium text-gray-800 max-w-3xl mx-auto 
-                                                   leading-[1.8] md:leading-[2.2] admin-description whitespace-pre-line text-center opacity-90"
+                                        className="mt-8 text-sm md:text-lg font-medium text-gray-800 max-w-3xl mx-auto leading-[1.8] md:leading-[2.2] admin-description whitespace-pre-line text-center opacity-90"
                                         dangerouslySetInnerHTML={{ __html: product.description }}
                                     />
                                 </div>
-                                {/* Subtle Light Accents */}
                                 <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-yellow-300 rounded-full blur-[80px] opacity-40"></div>
                                 <div className="absolute -top-20 -right-20 w-64 h-64 bg-yellow-200 rounded-full blur-[80px] opacity-30"></div>
                             </div>
 
-                            {/* 2. Highlight Feature Box (Screenshot Design) */}
                             <div className="bg-white rounded-[3.5rem] border border-gray-100 p-12 flex flex-col md:flex-row items-center gap-14 shadow-sm">
                                 <div className="w-64 h-80 bg-[#F9F9F9] rounded-[2.5rem] flex items-center justify-center p-8 border border-gray-50 shrink-0">
                                     <img src={activeImage} className="w-full h-full object-contain" alt="Pack Detail" />
                                 </div>
-
                                 <div className="flex-grow space-y-10 text-center md:text-left">
-    <h3 className="text-3xl md:text-4xl font-black text-gray-900 leading-none tracking-tight">
-        Skip the duplicates. <br/> 
-        <span className="text-orange-500 underline decoration-4 underline-offset-[12px]">Shop the Brand Vault.</span>
-    </h3>
-    
-    <div className="grid gap-5 max-w-md mx-auto md:mx-0">
-        <div className="flex items-center gap-5 bg-blue-50/60 p-5 rounded-2xl border border-blue-100/60">
-            <CheckCircleIcon className="w-7 h-7 text-blue-500 shrink-0" />
-            <p className="text-[11px] font-black text-blue-800 uppercase tracking-[0.15em] text-left">
-                Every Product Batch-Verified for Authenticity
-            </p>
-        </div>
-        
-        <div className="flex items-center gap-5 bg-orange-50/60 p-5 rounded-2xl border border-orange-100/60">
-            <XCircleIcon className="w-7 h-7 text-orange-400 shrink-0" />
-            <p className="text-[11px] font-black text-orange-800 uppercase tracking-[0.15em] text-left">
-                No Near-Expiry Goods – Only Fresh Market Stock
-            </p>
-        </div>
-    </div>
-</div>
-                            </div>
-
-                            {/* 3. Numbered Brand Standards Grid */}
-                            <section>
-                                <div className="flex items-center gap-5 mb-12">
-                                    <div className="h-[4px] w-14 bg-orange-500 rounded-full"></div>
-                                    <h2 className="text-xs font-black uppercase tracking-[0.4em] text-gray-900">Brand Promise</h2>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {[
-                                        { title: "Safe Packaging", desc: "Tamper-proof and moisture-sealed for ultimate product freshness." },
-                                        { title: "Express Dispatch", desc: "Priority shipping to get your essentials to you as fast as possible." },
-                                        { title: "Direct Sourced", desc: "100% original product sourced directly from brand official inventory." },
-                                        { title: "Fresh Batch", desc: "We ensure all products have the longest possible available shelf life." }
-                                    ].map((benefit, i) => (
-                                        <div key={i} className="group flex items-start gap-6 p-8 bg-white rounded-[2.5rem] border border-gray-100 hover:border-blue-200 transition-all shadow-sm hover:shadow-xl hover:shadow-gray-100/50">
-                                            <span className="flex-shrink-0 w-12 h-12 bg-gray-900 text-white rounded-full flex items-center justify-center text-[14px] font-black group-hover:bg-blue-600 transition-all duration-300">
-                                                {i + 1}
-                                            </span>
-                                            <div>
-                                                <h4 className="text-lg font-black text-gray-900 mb-2 uppercase tracking-tight">{benefit.title}</h4>
-                                                <p className="text-[12px] text-gray-400 font-medium leading-relaxed">{benefit.desc}</p>
-                                            </div>
+                                    <h3 className="text-3xl md:text-4xl font-black text-gray-900 leading-none tracking-tight">
+                                        Skip the duplicates. <br/> 
+                                        <span className="text-orange-500 underline decoration-4 underline-offset-[12px]">Shop the Brand Vault.</span>
+                                    </h3>
+                                    <div className="grid gap-5 max-w-md mx-auto md:mx-0">
+                                        <div className="flex items-center gap-5 bg-blue-50/60 p-5 rounded-2xl border border-blue-100/60">
+                                            <CheckCircleIcon className="w-7 h-7 text-blue-500 shrink-0" />
+                                            <p className="text-[11px] font-black text-blue-800 uppercase tracking-[0.15em] text-left">
+                                                Every Product Batch-Verified for Authenticity
+                                            </p>
                                         </div>
-                                    ))}
+                                        <div className="flex items-center gap-5 bg-orange-50/60 p-5 rounded-2xl border border-orange-100/60">
+                                            <XCircleIcon className="w-7 h-7 text-orange-400 shrink-0" />
+                                            <p className="text-[11px] font-black text-orange-800 uppercase tracking-[0.15em] text-left">
+                                                No Near-Expiry Goods – Only Fresh Market Stock
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
-                            </section>
+                            </div>
                         </div>
 
-                        {/* Sidebar: Similar Items (Fixed & Clean) */}
                         <aside className="space-y-10 sticky top-32">
                             <h3 className="text-xs font-black text-gray-900 px-3 uppercase tracking-[0.4em] mb-6">Similar Items</h3>
                             <div className="grid gap-5">
@@ -288,8 +279,8 @@ const Product = () => {
                                         </div>
                                         <div className="flex-grow">
                                             <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">{item.brand}</p>
-                                            <h4 className="text-sm font-bold text-gray-800 line-clamp-2 group-hover:text-blue-600 leading-snug">{item.title}</h4>
-                                            <p className="text-[11px] font-black text-gray-900 mt-3 uppercase tracking-tighter inline-flex items-center gap-1 group-hover:translate-x-1 transition-transform">View Details →</p>
+                                            <h4 className="text-sm font-bold text-gray-800 line-clamp-2 group-hover:text-blue-600">{item.title}</h4>
+                                            <p className="text-[11px] font-black text-gray-900 mt-3 uppercase tracking-tighter">View Details →</p>
                                         </div>
                                     </div>
                                 ))}
