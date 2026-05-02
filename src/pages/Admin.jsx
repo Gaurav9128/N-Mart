@@ -6,20 +6,7 @@ import ExportData from '../components/ExportData';
 import ImportData from '../components/ImportData';
 import UserCouponManager from '../components/UserCouponManager';
 import OrderDetails from '../components/OrderDetails';
-// ProductManagement ko import karna zaroori hai
-import ProductManagement from '../components/ProductManagement'; 
-
-// ShoppingBagIcon ko yahan list mein add kiya hai
-import { 
-  PlusIcon, 
-  PlusCircleIcon, 
-  ArrowPathIcon, 
-  ArrowDownTrayIcon, 
-  ArrowUpTrayIcon, 
-  UserIcon, 
-  ClipboardDocumentListIcon,
-  ShoppingBagIcon 
-} from '@heroicons/react/20/solid';
+import { PlusIcon, PlusCircleIcon, ArrowPathIcon, ArrowDownTrayIcon, ArrowUpTrayIcon, UserIcon, ClipboardDocumentListIcon } from '@heroicons/react/20/solid';
 
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
@@ -70,8 +57,7 @@ const Admin = () => {
         return <UserCouponManager />;
       case 'orderDetails':
         return <OrderDetails />;
-      case 'productManagement':
-        return <ProductManagement />;
+      
       default:
         return null;
     }
@@ -80,34 +66,35 @@ const Admin = () => {
   return (
     <div className="min-h-screen p-6 bg-gray-100 flex items-center justify-center">
       {loading && <Loader />}
-      {isAdmin ? (
-        <div className="container max-w-screen-lg mx-auto">
-          <div>
-            <h2 className="font-semibold text-xl text-gray-600">Admin Dashboard</h2>
-            <p className="text-gray-500 mb-6">Manage products, categories, and more</p>
+      {isAdmin ?
+      <div className="container max-w-screen-lg mx-auto">
+        <div>
+          <h2 className="font-semibold text-xl text-gray-600">Admin Dashboard</h2>
+          <p className="text-gray-500 mb-6">Manage products, categories, and more</p>
 
-            <div className="bg-white rounded shadow-lg p-4 px-4 md:p-8 mb-6">
-              <div className="grid gap-4 gap-y-2 text-sm grid-cols-1 lg:grid-cols-4">
-                <div className="flex flex-col text-gray-600 bg-gray-200">
-                  <button className={`${activeComponent === 'add' ? "bg-gray-400" : ""} flex p-2`} onClick={() => setActiveComponent('add')}><PlusIcon className='w-6 h-6' /><span className='pl-1'>Add Product </span></button>
-                  <button className={`${activeComponent === 'addCategory' ? "bg-gray-400" : ""} flex p-2`} onClick={() => setActiveComponent('addCategory')}><PlusCircleIcon className='w-6 h-6' /><span className='pl-1'>New Category </span></button>
-                  <button className={`${activeComponent === 'update' ? "bg-gray-400" : ""} flex p-2`} onClick={() => setActiveComponent('update')}><ArrowPathIcon className='w-6 h-6' /><span className='pl-1'>Update Product </span></button>
-                  <button className={`${activeComponent === 'export' ? "bg-gray-400" : ""} flex p-2`} onClick={() => setActiveComponent('export')}><ArrowDownTrayIcon className='w-6 h-6' /><span className='pl-1'>Export Data </span></button>
-                  <button className={`${activeComponent === 'import' ? "bg-gray-400" : ""} flex p-2`} onClick={() => setActiveComponent('import')}><ArrowUpTrayIcon className='w-6 h-6' /><span className='pl-1'>Import Data </span></button>
-                  <button className={`${activeComponent === 'userCouponManager' ? "bg-gray-400" : ""} flex p-2`} onClick={() => setActiveComponent('userCouponManager')}><UserIcon className='w-6 h-6' /><span className='pl-1'>Manage Coupons </span></button>
-                  <button className={`${activeComponent === 'orderDetails' ? "bg-gray-400" : ""} flex p-2`} onClick={() => setActiveComponent('orderDetails')}><ClipboardDocumentListIcon className='w-6 h-6' /><span className='pl-1'>Order Details </span></button>
-                  <button className={`${activeComponent === 'productManagement' ? "bg-gray-400" : ""} flex p-2`} onClick={() => setActiveComponent('productManagement')}><ShoppingBagIcon className='w-6 h-6' /><span className='pl-1'>Product Management </span></button>
-                </div>
-                <div className="lg:col-span-3">
-                  {renderComponent()}
-                </div>
+          <div className="bg-white rounded shadow-lg p-4 px-4 md:p-8 mb-6">
+            <div className="grid gap-4 gap-y-2 text-sm grid-cols-1 lg:grid-cols-4">
+              <div className="flex flex-col text-gray-600 bg-gray-200">
+                <button className={`${activeComponent === 'add' ? "bg-gray-400" : ""} flex p-2`} onClick={() => setActiveComponent('add')}><PlusIcon className='w-6 h-6' /><span className='pl-1'>Add Product </span></button>
+                <button className={`${activeComponent === 'addCategory' ? "bg-gray-400" : ""} flex p-2`} onClick={() => setActiveComponent('addCategory')}><PlusCircleIcon className='w-6 h-6' /><span className='pl-1'>New Category </span></button>
+                <button className={`${activeComponent === 'update' ? "bg-gray-400" : ""} flex p-2`} onClick={() => setActiveComponent('update')}><ArrowPathIcon className='w-6 h-6' /><span className='pl-1'>Update Product </span></button>
+                <button className={`${activeComponent === 'export' ? "bg-gray-400" : ""} flex p-2`} onClick={() => setActiveComponent('export')}><ArrowDownTrayIcon className='w-6 h-6' /><span className='pl-1'>Export Data </span></button>
+                <button className={`${activeComponent === 'import' ? "bg-gray-400" : ""} flex p-2`} onClick={() => setActiveComponent('import')}><ArrowUpTrayIcon className='w-6 h-6' /><span className='pl-1'>Import Data </span></button>
+                <button className={`${activeComponent === 'userCouponManager' ? "bg-gray-400" : ""} flex p-2`} onClick={() => setActiveComponent('userCouponManager')}><UserIcon className='w-6 h-6' /><span className='pl-1'>Manage Coupons </span></button>
+                <button className={`${activeComponent === 'orderDetails' ? "bg-gray-400" : ""} flex p-2`} onClick={() => setActiveComponent('orderDetails')}><ClipboardDocumentListIcon className='w-6 h-6' /><span className='pl-1'>Order Details </span></button>
+              </div>
+              <div className="lg:col-span-3">
+                {renderComponent()}
+
+
               </div>
             </div>
           </div>
         </div>
-      ) : (
-        !loading && <h1>Unauthorized Access</h1>
-      )}
+      </div>
+         :
+        <h1>Unauthorized Access</h1>
+     }  
     </div>
   );
 };
